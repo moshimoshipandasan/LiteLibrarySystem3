@@ -4,8 +4,8 @@
 
 ## 参照情報
 
-- **スプレッドシートテンプレート**: [サンプルスプレッドシート](https://docs.google.com/spreadsheets/d/1YBsLeKQln_PxwqQyJpEal87O3nC5Vg29_kRWYYabtr0/copy)
-- **参考システム**: [システム紹介ページ](https://sites.google.com/view/ueno999/top)
+- **スプレッドシートテンプレート**: [https://docs.google.com/spreadsheets/d/1rZ-CD9SesyxnI1CKc5bGC0qA8GPu4-CK1_3nth0R23g/copy](https://docs.google.com/spreadsheets/d/1rZ-CD9SesyxnI1CKc5bGC0qA8GPu4-CK1_3nth0R23g/copy)
+- **参考システム**: [https://sites.google.com/view/ueno999/top](https://sites.google.com/view/ueno999/top)
 
 ## サポート
 
