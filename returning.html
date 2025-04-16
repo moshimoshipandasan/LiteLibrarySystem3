@@ -15,7 +15,7 @@
         margin: 0;
         padding: 0; /* bodyのpadding削除 */
         line-height: 1.7; /* 行間を少し広げる */
-        font-size: 1.2rem; /* ベースフォントサイズをさらに大きく */
+        font-size: 1.4rem; /* ベースフォントサイズをさらに大きく */
       }
       .container {
         /* max-width: 700px; */ /* 最大幅削除 */
@@ -38,7 +38,7 @@
         margin-bottom: 30px;
         border-bottom: 2px solid #eee;
         padding-bottom: 20px; /* 下線とのスペース調整 */
-        font-size: 2em; /* 見出しをさらに大きく */
+        font-size: 2.2em; /* 見出しをさらに大きく */
       }
 
       /* --- Form Styles --- */
@@ -47,33 +47,33 @@
       }
       label {
         display: block;
-        margin-bottom: 12px; /* ラベル下のスペースを広げる */
+        margin-bottom: 15px; /* ラベル下のスペースを広げる */
         font-weight: 700; /* 太字 */
         color: #444; /* 少し濃く */
-        font-size: 1.2em; /* ラベルをさらに大きく */
+        font-size: 1.5em; /* ラベルをさらに大きく */
       }
       /* Textarea for multiple IDs */
       textarea {
         width: 100%;
-        padding: 18px; /* 入力欄のパディングをさらに大きく */
+        padding: 20px; /* 入力欄のパディングをさらに大きく */
         border: 1px solid #aaa; /* 境界線を少し濃く */
-        border-radius: 6px; /* 少し角丸を強く */
+        border-radius: 8px; /* 少し角丸を強く */
         box-sizing: border-box;
-        font-size: 1.2em; /* 入力文字をさらに大きく */
+        font-size: 1.4em; /* 入力文字をさらに大きく */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
         resize: vertical; /* 縦方向のリサイズのみ許可 */
       }
       button {
         background-color: #0056b3;
         color: white;
-        padding: 18px 30px; /* ボタンのパディングをさらに大きく */
+        padding: 22px 30px; /* ボタンのパディングをさらに大きく */
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 1.2em; /* ボタン文字をさらに大きく */
+        font-size: 1.4em; /* ボタン文字をさらに大きく */
         font-weight: 700; /* ボタン文字を太く */
         transition: background-color 0.3s ease;
-        margin-top: 10px; /* ボタン間のスペース調整 */
+        margin-top: 15px; /* ボタン間のスペース調整 */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       button:hover {
@@ -81,28 +81,62 @@
       }
       /* スキャンボタンは少し小さく */
       #scan-book-id-button {
-         padding: 15px 20px; /* スキャンボタンのパディング調整 */
+         padding: 18px 25px; /* スキャンボタンのパディング調整 */
          background-color: #6c757d; /* グレー系 */
          margin-right: 10px;
-         font-size: 1.1em; /* スキャンボタンも少し大きく */
+         font-size: 1.3em; /* スキャンボタンも少し大きく */
          font-weight: 400; /* 通常の太さ */
       }
        #scan-book-id-button:hover {
          background-color: #5a6268;
       }
       /* 返却ボタン */
-      #return-button {
+      #bulk-return-button {
           display: block; /* ブロック要素にして幅を100%に */
           width: 100%;
-          margin-top: 25px; /* 上マージン調整 */
+          margin-top: 30px; /* 上マージン調整 */
           background-color: #dc3545; /* 警告の色 */
+          padding: 25px 30px; /* ボタンのパディングをさらに大きく */
+          font-size: 1.5em; /* ボタン文字をさらに大きく */
       }
-      #return-button:hover {
+      #bulk-return-button:hover {
           background-color: #c82333;
       }
-      #return-button:disabled {
+      #bulk-return-button:disabled {
           background-color: #ccc;
           cursor: not-allowed;
+      }
+      
+      /* チェックボックス */
+      .book-checkbox {
+          width: 28px;
+          height: 28px;
+          cursor: pointer;
+      }
+      
+      /* テーブルスタイル */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px; /* テーブル上のスペース調整 */
+        font-size: 1.3em; /* テーブル文字をさらに大きく */
+      }
+      th, td {
+        padding: 20px; /* セルのパディングをさらに大きく */
+        text-align: left;
+        border-bottom: 1px solid #d0d0d0; /* 線を少し濃く */
+      }
+      th {
+        background-color: #e9ecef; /* ヘッダー背景色 */
+        color: #495057;
+        font-weight: 700; /* ヘッダー太字 */
+        white-space: nowrap; /* ヘッダーは折り返さない */
+      }
+      tr:nth-child(even) {
+          background-color: #f8f9fa; /* 交互に背景色 */
+      }
+      tr:hover {
+        background-color: #e2e6ea; /* ホバー色 */
       }
 
 
@@ -113,7 +147,7 @@
         max-width: 480px; /* スキャナ表示の最大幅 */
         height: auto;
         overflow: hidden;
-        margin-top: 10px;
+        margin: 10px auto; /* 上下マージン10px、左右マージンautoで中央揃え */
         border: 1px solid #ddd;
         border-radius: 4px;
         background-color: #eee; /* 背景色 */
@@ -133,10 +167,10 @@
       #message {
         margin-top: 30px; /* 上マージン調整 */
         font-weight: 700; /* 太字 */
-        padding: 18px; /* パディング調整 */
-        border-radius: 6px;
+        padding: 20px; /* パディング調整 */
+        border-radius: 8px;
         text-align: center;
-        font-size: 1.2em; /* メッセージ文字をさらに大きく */
+        font-size: 1.4em; /* メッセージ文字をさらに大きく */
       }
       #message:not(:empty) {
          display: block;
@@ -146,15 +180,88 @@
       }
 
       /* --- Responsive Design --- */
+      @media (max-width: 768px) { /* テーブルがあるのでブレークポイント調整 */
+        th, td {
+            padding: 15px 12px; /* スマホではテーブルパディングを調整 */
+            font-size: 1.2em; /* スマホではテーブル文字サイズ少し調整 */
+        }
+        
+        /* テーブルのレスポンシブ対応を強化 */
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+        
+        /* ヘッダーを非表示 */
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        
+        tr {
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        
+        td {
+            /* tdをブロック要素として表示し、各セルの前にラベルを表示 */
+            position: relative;
+            padding-left: 50%;
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+        
+        td:before {
+            /* ラベルとして使用するコンテンツ */
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        
+        /* 各セルのラベル */
+        td:nth-of-type(1):before { content: "選択"; }
+        td:nth-of-type(2):before { content: "書籍ID"; }
+        td:nth-of-type(3):before { content: "書籍名"; }
+      }
+      
       @media (max-width: 600px) {
-         .container { padding: 10px; }
-         h1 { font-size: 1.8rem; padding-left: 10px; padding-right: 10px; }
+         .container { padding: 15px; }
+         h1 { font-size: 2rem; padding-left: 10px; padding-right: 10px; }
          .form-group { padding-left: 10px; padding-right: 10px; }
-         #message { margin-left: 10px; margin-right: 10px; }
-         button { width: 100%; margin-right: 0; margin-bottom: 10px; }
-         #scan-book-id-button { margin-bottom: 5px; }
+         #message { 
+            margin-left: 10px; 
+            margin-right: 10px; 
+            font-size: 1.3em; /* メッセージ文字をさらに大きく */
+         }
+         button { 
+            width: 100%; 
+            margin-right: 0; 
+            margin-bottom: 15px; 
+            padding: 20px 25px; /* ボタンのパディングをさらに大きく */
+            font-size: 1.4em; /* ボタン文字をさらに大きく */
+         }
+         #scan-book-id-button { 
+            margin-bottom: 10px; 
+            padding: 20px 25px; /* スキャンボタンのパディング調整 */
+         }
          button:last-of-type { margin-bottom: 0; }
-         #return-button { width: 100%; }
+         #bulk-return-button { 
+            width: 100%; 
+            padding: 25px 30px; /* 返却ボタンのパディングをさらに大きく */
+            font-size: 1.5em; /* 返却ボタン文字をさらに大きく */
+         }
+         
+         /* チェックボックスをさらに大きく */
+         .book-checkbox {
+            width: 30px;
+            height: 30px;
+         }
       }
     </style>
   </head>
@@ -163,13 +270,17 @@
       <h1>図書返却</h1>
 
       <div class="form-group">
-        <label for="book-ids">返却する書籍ID（連続スキャン可能）</label>
-        <button id="scan-book-id-button">書籍IDをスキャン</button>
-        <textarea id="book-ids" name="bookIds" placeholder="スキャンするか手入力（カンマ区切り）" rows="4" style="font-size: 1.2em; padding: 15px; border: 1px solid #aaa; border-radius: 6px; box-sizing: border-box; width: 100%; font-family: 'Noto Sans JP', sans-serif;"></textarea>
+        <label for="book-id">返却する書籍ID（連続スキャン可能）</label>
+        <button id="scan-book-id-button">書籍IDをスキャン</button><br>
+        <input type="text" id="book-id" name="bookId" placeholder="スキャンするか手入力してください" style="font-size: 1.4em; padding: 20px; margin-top: 10px;">
         <div id="interactive" class="viewport" style="display: none;"></div> <!-- 初期非表示 -->
       </div>
       
-      <button id="return-button" onclick="submitReturn()" disabled>一括返却処理</button> <!-- 初期は無効 -->
+      <div id="scanned-books" style="display: none;">
+        <h2>返却対象書籍</h2>
+        <div id="books-container"></div>
+        <button id="bulk-return-button" onclick="submitReturn()" disabled>選択した本をまとめて返却</button>
+      </div>
       
       <p id="message"></p>
       
@@ -180,6 +291,8 @@
     <script>
       let isScanning = false;
       let scannedBookIds = []; // 返却する書籍IDを保持する配列
+      let scannedBookTitles = []; // 返却する書籍名を保持する配列
+      let selectedBookIds = []; // 選択された書籍IDを保持する配列
       let currentScannerTarget = null; // スキャナー用
       // ビープ音用のAudioオブジェクト
       const beepSound = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8DouEimPVuiRkITnEBKDATKJd9ZG/LZZPuQELRJXYmKl7Ds2nJBcXHbNsOg5PRk9J8UxLWGs5FhiGBUAg1xHYDaHR0cDovL3d3dy5yZXNvdXJjZXNwYWNrLmNvbS9ycGcvR2VuZXJhdG9yLw==");
@@ -196,14 +309,16 @@
       function setupEventListeners() {
         // スキャンボタン
         document.getElementById('scan-book-id-button').addEventListener('click', () => {
-          toggleScanner('interactive', 'book-ids'); // inputFieldIdはtextareaのID
+          toggleScanner('interactive', 'book-id');
         });
-        // 書籍ID手入力（カンマ区切り）変更時
-        document.getElementById('book-ids').addEventListener('input', () => {
-            // 手入力の場合は配列を直接更新
-            const idsText = document.getElementById('book-ids').value;
-            scannedBookIds = idsText.split(/[\s,]+/).map(id => id.trim()).filter(id => id); // カンマまたは空白で区切り、空要素を除去
-            updateReturnButtonState();
+        // 書籍ID手入力時のEnterキー処理
+        document.getElementById('book-id').addEventListener('keypress', (event) => {
+          if (event.key === 'Enter' && !isScanning) {
+            const bookId = document.getElementById('book-id').value.trim();
+            if (bookId) {
+              addBookIdToList(bookId);
+            }
+          }
         });
       }
 
@@ -355,52 +470,132 @@
 
           // 重複チェック
           if (!scannedBookIds.includes(trimmedId)) {
-              scannedBookIds.push(trimmedId);
-              updateBookIdDisplay();
-              updateReturnButtonState();
-              setMessage(`書籍ID [${trimmedId}] をリストに追加しました。`);
+              // 書籍情報を取得
+              setMessage(`書籍 [${trimmedId}] の情報を検索中...`);
+              google.script.run
+                  .withSuccessHandler(bookDetails => {
+                      if (bookDetails && bookDetails.title) {
+                          scannedBookIds.push(trimmedId);
+                          scannedBookTitles.push(bookDetails.title);
+                          updateBookDisplay();
+                          setMessage(`書籍「${bookDetails.title}」を追加しました。`);
+                          document.getElementById('scanned-books').style.display = 'block';
+                      } else {
+                          setMessage(`書籍ID [${trimmedId}] の情報が見つかりませんでした。`);
+                      }
+                      clearBookIdInput(); // 処理後に入力欄をクリア
+                      updateReturnButtonState(); // 返却ボタンの状態更新
+                  })
+                  .withFailureHandler(error => {
+                      setMessage(`書籍情報の取得エラー (ID: ${trimmedId}): ${error.message}`);
+                      console.error("書籍情報取得エラー:", error);
+                      clearBookIdInput();
+                  })
+                  .getBookDetails(trimmedId); // getBookDetailsを呼び出す
           } else {
               setMessage(`書籍ID [${trimmedId}] は既に追加されています。`);
+              clearBookIdInput();
           }
-          // textareaの内容も更新
-          document.getElementById('book-ids').value = scannedBookIds.join(', ');
       }
 
-      // 書籍IDリスト表示を更新する関数
-      function updateBookIdDisplay() {
-          document.getElementById('book-ids').value = scannedBookIds.join(', ');
+      // 書籍ID入力欄をクリアする
+      function clearBookIdInput() {
+          document.getElementById('book-id').value = '';
       }
 
-       // 返却ボタンの有効/無効状態を更新する関数
+      // 書籍リスト表示を更新する関数
+      function updateBookDisplay() {
+          const container = document.getElementById('books-container');
+          
+          // テーブルを作成
+          let html = `
+            <table>
+              <thead>
+                <tr>
+                  <th><input type="checkbox" id="select-all-checkbox" onclick="toggleAllCheckboxes()"></th>
+                  <th>書籍ID</th>
+                  <th>書籍名</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          
+          // 書籍ごとに行を追加
+          scannedBookIds.forEach((bookId, index) => {
+              html += `
+                <tr>
+                  <td><input type="checkbox" class="book-checkbox" data-book-id="${bookId}" onchange="updateSelectedBooks()"></td>
+                  <td>${bookId}</td>
+                  <td>${scannedBookTitles[index] || 'N/A'}</td>
+                </tr>
+              `;
+          });
+          
+          html += `
+              </tbody>
+            </table>
+          `;
+          
+          container.innerHTML = html;
+          updateSelectedBooks(); // 選択状態を更新
+      }
+
+      // 全てのチェックボックスの選択/解除を切り替える関数
+      function toggleAllCheckboxes() {
+          const selectAllCheckbox = document.getElementById('select-all-checkbox');
+          const checkboxes = document.querySelectorAll('.book-checkbox');
+          
+          checkboxes.forEach(checkbox => {
+              checkbox.checked = selectAllCheckbox.checked;
+          });
+          
+          updateSelectedBooks();
+      }
+      
+      // 選択された書籍IDのリストを更新する関数
+      function updateSelectedBooks() {
+          selectedBookIds = [];
+          const checkboxes = document.querySelectorAll('.book-checkbox:checked');
+          
+          checkboxes.forEach(checkbox => {
+              const bookId = checkbox.getAttribute('data-book-id');
+              if (bookId) {
+                  selectedBookIds.push(bookId);
+              }
+          });
+          
+          console.log("選択された書籍ID:", selectedBookIds);
+          updateReturnButtonState();
+      }
+
+      // 返却ボタンの有効/無効状態を更新する関数
       function updateReturnButtonState() {
-          const returnButton = document.getElementById('return-button');
-          if (scannedBookIds.length > 0) {
-              returnButton.disabled = false;
-          } else {
-              returnButton.disabled = true;
+          const returnButton = document.getElementById('bulk-return-button');
+          if (returnButton) {
+              returnButton.disabled = selectedBookIds.length === 0;
           }
       }
 
       // 状態をリセットする関数
       function resetReturnState() {
           scannedBookIds = [];
-          document.getElementById('book-ids').value = '';
+          scannedBookTitles = [];
+          selectedBookIds = [];
+          document.getElementById('book-id').value = '';
+          document.getElementById('books-container').innerHTML = '';
+          document.getElementById('scanned-books').style.display = 'none';
           updateReturnButtonState();
       }
 
       // 一括返却処理実行 (GAS側を呼び出す)
       function submitReturn() {
-          // textareaから最新のIDリストを取得（手入力対応）
-          const idsText = document.getElementById('book-ids').value;
-          scannedBookIds = idsText.split(/[\s,]+/).map(id => id.trim()).filter(id => id);
-
-          if (scannedBookIds.length === 0) {
-              setMessage("返却する書籍IDがありません。");
+          if (selectedBookIds.length === 0) {
+              setMessage("返却する書籍が選択されていません。");
               return;
           }
 
-          setMessage("一括返却処理を実行中...");
-          document.getElementById('return-button').disabled = true; // 処理中はボタン無効化
+          setMessage(`選択された ${selectedBookIds.length} 冊の本を返却処理中...`);
+          document.getElementById('bulk-return-button').disabled = true; // 処理中はボタン無効化
 
           google.script.run
               .withSuccessHandler(response => {
@@ -410,16 +605,16 @@
                      resetReturnState();
                   } else {
                       // 失敗した場合でもボタンは有効に戻す
-                      document.getElementById('return-button').disabled = false;
+                      document.getElementById('bulk-return-button').disabled = false;
                   }
                   // サーバーからのログは無視
               })
               .withFailureHandler(error => {
                   setMessage(`一括返却処理失敗: ${error.message}`);
                   console.error("一括返却エラー:", error);
-                  document.getElementById('return-button').disabled = false; // エラー時もボタン有効化
+                  document.getElementById('bulk-return-button').disabled = false; // エラー時もボタン有効化
               })
-              .processBulkReturn(scannedBookIds); // 新しいサーバー関数を呼び出す
+              .processBulkReturn(selectedBookIds); // 新しいサーバー関数を呼び出す
       }
 
       // --- ユーティリティ関数 ---
@@ -427,13 +622,35 @@
       function playBeepSound() {
         try {
           // 音量設定
-          beepSound.volume = 0.5;
+          beepSound.volume = 1.0; // 音量を最大に設定
           // 再生位置を先頭に戻す（連続で鳴らせるように）
           beepSound.currentTime = 0;
-          // 音を再生
-          beepSound.play().catch(e => console.error("ビープ音の再生に失敗:", e));
+          
+          // 音を再生（複数回試行）
+          const playPromise = beepSound.play();
+          
+          if (playPromise !== undefined) {
+            playPromise.then(() => {
+              // 再生成功
+              console.log("ビープ音再生成功");
+            }).catch(e => {
+              console.error("ビープ音の再生に失敗:", e);
+              // 失敗した場合は再試行
+              setTimeout(() => {
+                beepSound.play().catch(e2 => console.error("ビープ音の再生再試行も失敗:", e2));
+              }, 100);
+            });
+          }
         } catch (e) {
           console.error("ビープ音の再生中にエラーが発生:", e);
+          // エラー発生時も再試行
+          setTimeout(() => {
+            try {
+              beepSound.play();
+            } catch (e2) {
+              console.error("ビープ音の再生再試行も例外発生:", e2);
+            }
+          }, 100);
         }
       }
       

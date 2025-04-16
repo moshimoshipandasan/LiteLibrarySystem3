@@ -15,7 +15,7 @@
         margin: 0;
         padding: 0; /* bodyのpadding削除 */
         line-height: 1.7; /* 行間を少し広げる */
-        font-size: 1.2rem; /* ベースフォントサイズをさらに大きく */
+        font-size: 1.4rem; /* ベースフォントサイズをさらに大きく */
       }
       .container {
         margin: 0;
@@ -32,13 +32,13 @@
         margin-bottom: 30px;
         border-bottom: 2px solid #eee;
         padding-bottom: 20px; /* 下線とのスペース調整 */
-        font-size: 2em; /* 見出しをさらに大きく */
+        font-size: 2.2em; /* 見出しをさらに大きく */
       }
       h2 {
           margin-top: 40px; /* 検索結果の見出し上にスペース */
           text-align: left; /* 検索結果は左揃え */
           border-bottom: none; /* 下線なし */
-          font-size: 1.7em; /* h2もさらに大きく */
+          font-size: 1.9em; /* h2もさらに大きく */
           color: #0056b3; /* h1と同じ色 */
           padding-left: 10px; /* スマホ表示用 */
           padding-right: 10px; /* スマホ表示用 */
@@ -50,18 +50,18 @@
       }
       label {
         display: block;
-        margin-bottom: 12px; /* ラベル下のスペースを広げる */
+        margin-bottom: 15px; /* ラベル下のスペースを広げる */
         font-weight: 700; /* 太字 */
         color: #444; /* 少し濃く */
-        font-size: 1.2em; /* ラベルをさらに大きく */
+        font-size: 1.5em; /* ラベルをさらに大きく */
       }
       input[type="text"], input[type="number"] { /* numberも追加 */
         width: 100%;
-        padding: 18px; /* 入力欄のパディングをさらに大きく */
+        padding: 20px; /* 入力欄のパディングをさらに大きく */
         border: 1px solid #aaa; /* 境界線を少し濃く */
-        border-radius: 6px; /* 少し角丸を強く */
+        border-radius: 8px; /* 少し角丸を強く */
         box-sizing: border-box;
-        font-size: 1.2em; /* 入力文字をさらに大きく */
+        font-size: 1.4em; /* 入力文字をさらに大きく */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       input[readonly] {
@@ -71,14 +71,14 @@
       button {
         background-color: #0056b3;
         color: white;
-        padding: 18px 30px; /* ボタンのパディングをさらに大きく */
+        padding: 22px 30px; /* ボタンのパディングをさらに大きく */
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 1.2em; /* ボタン文字をさらに大きく */
+        font-size: 1.4em; /* ボタン文字をさらに大きく */
         font-weight: 700; /* ボタン文字を太く */
         transition: background-color 0.3s ease;
-        margin-top: 10px; /* ボタン間のスペース調整 */
+        margin-top: 15px; /* ボタン間のスペース調整 */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       button:hover {
@@ -86,10 +86,10 @@
       }
       /* スキャンボタンは少し小さく */
       #scan-user-id-button { 
-         padding: 15px 20px; /* スキャンボタンのパディング調整 */
+         padding: 18px 25px; /* スキャンボタンのパディング調整 */
          background-color: #6c757d; /* グレー系 */
          margin-right: 10px;
-         font-size: 1.1em; /* スキャンボタンも少し大きく */
+         font-size: 1.3em; /* スキャンボタンも少し大きく */
          font-weight: 400; /* 通常の太さ */
       }
       #scan-user-id-button:hover { 
@@ -97,25 +97,26 @@
       }
       /* 検索ボタン */
       button[onclick="searchUserRentals()"] {
-          margin-top: 15px; /* 上に少しスペース */
+          margin-top: 20px; /* 上に少しスペース */
           /* 他のボタンとスタイルを合わせる */
           font-weight: 400;
-          padding: 15px 25px; /* パディング調整 */
-          font-size: 1.1em; /* 少し小さめでも良い */
+          padding: 18px 25px; /* パディング調整 */
+          font-size: 1.3em; /* 少し小さめでも良い */
+          width: 100%; /* スマホでは幅いっぱいに */
       }
       /* チェックボックス */
       .book-checkbox {
-          width: 20px;
-          height: 20px;
+          width: 28px;
+          height: 28px;
           cursor: pointer;
       }
       
       /* まとめて返却ボタン */
       #bulk-return-button {
           background-color: #dc3545; /* 赤系 */
-          padding: 15px 25px;
-          font-size: 1.1em;
-          margin-top: 20px;
+          padding: 20px 25px;
+          font-size: 1.4em;
+          margin-top: 25px;
           display: block;
           width: 100%;
       }
@@ -161,10 +162,10 @@
         width: 100%;
         border-collapse: collapse;
         margin-top: 20px; /* テーブル上のスペース調整 */
-        font-size: 1.15em; /* テーブル文字をさらに大きく */
+        font-size: 1.3em; /* テーブル文字をさらに大きく */
       }
       th, td {
-        padding: 18px; /* セルのパディングをさらに大きく */
+        padding: 20px; /* セルのパディングをさらに大きく */
         text-align: left;
         border-bottom: 1px solid #d0d0d0; /* 線を少し濃く */
       }
@@ -208,16 +209,62 @@
       /* --- Responsive Design --- */
       @media (max-width: 768px) { /* テーブルがあるのでブレークポイント調整 */
         th, td {
-            padding: 12px 10px; /* スマホではテーブルパディングを調整 */
-            font-size: 1.1em; /* スマホではテーブル文字サイズ少し調整 */
+            padding: 15px 12px; /* スマホではテーブルパディングを調整 */
+            font-size: 1.2em; /* スマホではテーブル文字サイズ少し調整 */
         }
+        
+        /* テーブルのレスポンシブ対応を強化 */
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+        
+        /* ヘッダーを非表示 */
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        
+        tr {
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        
+        td {
+            /* tdをブロック要素として表示し、各セルの前にラベルを表示 */
+            position: relative;
+            padding-left: 50%;
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+        
+        td:before {
+            /* ラベルとして使用するコンテンツ */
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        
+        /* 各セルのラベル */
+        td:nth-of-type(1):before { content: "選択"; }
+        td:nth-of-type(2):before { content: "書籍ID"; }
+        td:nth-of-type(3):before { content: "書籍名"; }
+        td:nth-of-type(4):before { content: "貸出日時"; }
+        td:nth-of-type(5):before { content: "返却予定日"; }
       }
+      
       @media (max-width: 600px) {
          .container {
-             padding: 10px; /* スマホではコンテナ内パディングを少し減らす */
+             padding: 15px; /* スマホではコンテナ内パディングを少し減らす */
          }
         h1 {
-          font-size: 1.8rem;
+          font-size: 2rem;
           /* スマホ表示用にh1にも少しパディング */
           padding-left: 10px;
           padding-right: 10px;
@@ -233,17 +280,27 @@
         #message {
             margin-left: 10px;
             margin-right: 10px;
+            font-size: 1.3em; /* メッセージ文字をさらに大きく */
         }
         button {
           width: 100%; /* 小画面ではボタン幅を100%に */
           margin-right: 0;
-          margin-bottom: 10px; /* ボタン間の縦スペース */
+          margin-bottom: 15px; /* ボタン間の縦スペース */
+          padding: 20px 25px; /* ボタンのパディングをさらに大きく */
+          font-size: 1.4em; /* ボタン文字をさらに大きく */
         }
         #scan-user-id-button { 
-             margin-bottom: 5px; /* スキャンボタン下のスペース */
+             margin-bottom: 10px; /* スキャンボタン下のスペース */
+             padding: 20px 25px; /* スキャンボタンのパディング調整 */
         }
         button:last-of-type {
              margin-bottom: 0;
+        }
+        
+        /* チェックボックスをさらに大きく */
+        .book-checkbox {
+            width: 30px;
+            height: 30px;
         }
       }
     </style>

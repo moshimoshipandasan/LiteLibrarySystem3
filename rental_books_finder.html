@@ -15,7 +15,7 @@
         margin: 0;
         padding: 0; /* bodyのpadding削除 */
         line-height: 1.7; /* 行間を少し広げる */
-        font-size: 1.2rem; /* ベースフォントサイズをさらに大きく */
+        font-size: 1.4rem; /* ベースフォントサイズをさらに大きく */
       }
       .container {
         /* max-width: 800px; */ /* 最大幅削除 */
@@ -56,18 +56,18 @@
       }
       label {
         display: block;
-        margin-bottom: 12px; /* ラベル下のスペースを広げる */
+        margin-bottom: 15px; /* ラベル下のスペースを広げる */
         font-weight: 700; /* 太字 */
         color: #444; /* 少し濃く */
-        font-size: 1.2em; /* ラベルをさらに大きく */
+        font-size: 1.5em; /* ラベルをさらに大きく */
       }
       input[type="text"], input[type="number"] { /* numberも追加 */
         width: 100%;
-        padding: 18px; /* 入力欄のパディングをさらに大きく */
+        padding: 20px; /* 入力欄のパディングをさらに大きく */
         border: 1px solid #aaa; /* 境界線を少し濃く */
-        border-radius: 6px; /* 少し角丸を強く */
+        border-radius: 8px; /* 少し角丸を強く */
         box-sizing: border-box;
-        font-size: 1.2em; /* 入力文字をさらに大きく */
+        font-size: 1.4em; /* 入力文字をさらに大きく */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       input[readonly] {
@@ -77,14 +77,14 @@
       button {
         background-color: #0056b3;
         color: white;
-        padding: 18px 30px; /* ボタンのパディングをさらに大きく */
+        padding: 22px 30px; /* ボタンのパディングをさらに大きく */
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 1.2em; /* ボタン文字をさらに大きく */
+        font-size: 1.4em; /* ボタン文字をさらに大きく */
         font-weight: 700; /* ボタン文字を太く */
         transition: background-color 0.3s ease;
-        margin-top: 10px; /* ボタン間のスペース調整 */
+        margin-top: 15px; /* ボタン間のスペース調整 */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       button:hover {
@@ -92,10 +92,10 @@
       }
       /* スキャンボタンは少し小さく */
       #scan-book-id-button { /* ID修正 */
-         padding: 15px 20px; /* スキャンボタンのパディング調整 */
+         padding: 18px 25px; /* スキャンボタンのパディング調整 */
          background-color: #6c757d; /* グレー系 */
          margin-right: 10px;
-         font-size: 1.1em; /* スキャンボタンも少し大きく */
+         font-size: 1.3em; /* スキャンボタンも少し大きく */
          font-weight: 400; /* 通常の太さ */
       }
        #scan-book-id-button:hover { /* ID修正 */
@@ -103,11 +103,12 @@
       }
       /* 検索ボタン */
       button[onclick="searchRentalRecords()"] {
-          margin-top: 15px; /* 上に少しスペース */
+          margin-top: 20px; /* 上に少しスペース */
           /* 他のボタンとスタイルを合わせる */
           font-weight: 400;
-          padding: 15px 25px; /* パディング調整 */
-          font-size: 1.1em; /* 少し小さめでも良い */
+          padding: 18px 25px; /* パディング調整 */
+          font-size: 1.3em; /* 少し小さめでも良い */
+          width: 100%; /* スマホでは幅いっぱいに */
       }
 
 
@@ -140,6 +141,22 @@
       }
       #records-container {
           overflow-x: auto; /* テーブルがはみ出す場合にスクロール */
+      }
+      /* 返却状況の色分け */
+      .status-returned {
+        color: #28a745; /* 緑色 */
+        font-weight: bold;
+      }
+      .status-not-returned {
+        color: #dc3545; /* 赤色 */
+        font-weight: bold;
+      }
+      /* 利用者ID表示用 */
+      .user-id {
+        display: block;
+        font-size: 0.85em;
+        color: #6c757d;
+        margin-top: 5px;
       }
       table {
         width: 100%;
@@ -177,10 +194,10 @@
       #message {
         margin-top: 30px; /* 上マージン調整 */
         font-weight: 700; /* 太字 */
-        padding: 18px; /* パディング調整 */
-        border-radius: 6px;
+        padding: 20px; /* パディング調整 */
+        border-radius: 8px;
         text-align: center;
-        font-size: 1.2em; /* メッセージ文字をさらに大きく */
+        font-size: 1.4em; /* メッセージ文字をさらに大きく */
       }
       /* メッセージの種類に応じてスタイルを変える（例） */
       #message:not(:empty) { /* メッセージがある時だけ表示 */
@@ -214,10 +231,10 @@
       @media (max-width: 600px) {
          /* body, .container の padding, margin, max-width, border-radius, box-shadow はベーススタイルで対応済み */
          .container {
-             padding: 10px; /* スマホではコンテナ内パディングを少し減らす */
+             padding: 15px; /* スマホではコンテナ内パディングを少し減らす */
          }
         h1 {
-          font-size: 1.8rem;
+          font-size: 2rem;
            /* スマホ表示用にh1にも少しパディング */
           padding-left: 10px;
           padding-right: 10px;
@@ -236,18 +253,68 @@
         #message {
             margin-left: 10px;
             margin-right: 10px;
+            font-size: 1.3em; /* メッセージ文字をさらに大きく */
         }
         button {
           width: 100%; /* 小画面ではボタン幅を100%に */
           margin-right: 0;
-          margin-bottom: 10px; /* ボタン間の縦スペース */
+          margin-bottom: 15px; /* ボタン間の縦スペース */
+          padding: 20px 25px; /* ボタンのパディングをさらに大きく */
+          font-size: 1.4em; /* ボタン文字をさらに大きく */
         }
          #scan-book-id-button { /* ID修正 */
-             margin-bottom: 5px; /* スキャンボタン下のスペース */
+             margin-bottom: 10px; /* スキャンボタン下のスペース */
+             padding: 20px 25px; /* スキャンボタンのパディング調整 */
          }
          button:last-of-type {
              margin-bottom: 0;
          }
+         
+         /* テーブルのレスポンシブ対応を強化 */
+         table, thead, tbody, th, td, tr {
+             display: block;
+         }
+         
+         /* ヘッダーを非表示 */
+         thead tr {
+             position: absolute;
+             top: -9999px;
+             left: -9999px;
+         }
+         
+         tr {
+             margin-bottom: 15px;
+             border: 1px solid #ccc;
+             border-radius: 8px;
+             background-color: #fff;
+         }
+         
+         td {
+             /* tdをブロック要素として表示し、各セルの前にラベルを表示 */
+             position: relative;
+             padding-left: 50%;
+             border: none;
+             border-bottom: 1px solid #eee;
+         }
+         
+         td:before {
+             /* ラベルとして使用するコンテンツ */
+             position: absolute;
+             top: 15px;
+             left: 15px;
+             width: 45%;
+             padding-right: 10px;
+             white-space: nowrap;
+             font-weight: bold;
+         }
+         
+         /* 各セルのラベル */
+         td:nth-of-type(1):before { content: "書籍ID"; }
+         td:nth-of-type(2):before { content: "書籍名"; }
+         td:nth-of-type(3):before { content: "利用者名"; }
+         td:nth-of-type(4):before { content: "貸出日時"; }
+         td:nth-of-type(5):before { content: "返却予定日"; }
+         td:nth-of-type(6):before { content: "返却状況"; }
       }
     </style>
   </head>
@@ -270,12 +337,7 @@
         <div id="records-container"></div>
       </div>
       
-      <!-- デバッグログ表示エリア -->
-      <div id="debug-log">
-        <h3>デバッグログ</h3>
-        <pre id="log-content"></pre>
-        <button onclick="toggleDebugLog()">ログ表示切替</button>
-      </div>
+      <!-- デバッグログ表示エリアを削除 -->
     </div>
 
     <!-- バーコード読み取りライブラリ (QuaggaJSを使用) -->
@@ -440,24 +502,10 @@
          }
       }
 
-      // デバッグログの表示/非表示を切り替える関数
-      function toggleDebugLog() {
-        const debugLog = document.getElementById('debug-log');
-        if (debugLog.style.display === 'none') {
-          debugLog.style.display = 'block';
-        } else {
-          debugLog.style.display = 'none';
-        }
-      }
-      
-      // ログを追加する関数
+      // デバッグログ関連の関数を削除し、空の関数に置き換え
       function addLog(message) {
-        const logContent = document.getElementById('log-content');
-        const timestamp = new Date().toLocaleTimeString();
-        logContent.innerHTML += `[${timestamp}] ${message}\n`;
-        document.getElementById('debug-log').style.display = 'block'; // ログがあれば表示する
-        // 自動スクロール
-        logContent.scrollTop = logContent.scrollHeight;
+        // コンソールにのみ出力（開発時のデバッグ用）
+        console.log(message);
       }
 
       // 貸出記録を検索する関数
@@ -472,32 +520,12 @@
         document.getElementById('rental-records').style.display = 'none';
         document.getElementById('records-container').innerHTML = '';
         
-        addLog(`書籍ID [${bookId}] の貸出記録を検索します...`);
+        // デバッグログ出力を削除
         
         google.script.run
           .withSuccessHandler((result) => {
             console.log("検索結果:", result); // デバッグ用
-            addLog(`検索結果データ構造: ${JSON.stringify(result)}`); // デバッグ用
-            
-            if (result && result.logs) {
-              // ログ情報がある場合は表示
-              result.logs.forEach(log => addLog(log));
-            }
-            
-            // 詳細なデバッグ情報
-            if (result) {
-              addLog(`result オブジェクト: ${Object.keys(result).join(', ')}`);
-              if (result.records) {
-                addLog(`records 配列の長さ: ${result.records.length}`);
-                if (result.records.length > 0) {
-                  addLog(`最初のレコード: ${JSON.stringify(result.records[0])}`);
-                }
-              } else {
-                addLog(`records プロパティが存在しません`);
-              }
-            } else {
-              addLog(`result オブジェクトが null または undefined です`);
-            }
+            // デバッグログ出力を削除
             
             // --- 結果処理ロジックの改善 ---
             let recordsToDisplay = [];
@@ -508,9 +536,9 @@
             if (result && result.records && Array.isArray(result.records) && result.records.length > 0) {
               recordsToDisplay = result.records;
               foundViaRecords = true;
-              addLog(`${result.records.length}件の貸出記録をサーバーから直接受け取りました。`);
+              // デバッグログ出力を削除
             } else {
-              addLog("サーバーから返された records 配列は空または無効です。ログからの復元を試みます。");
+              // デバッグログ出力を削除
               // 2. records がダメなら、logs から「貸出記録発見」を探す
               if (result && result.logs && Array.isArray(result.logs)) {
                 for (const log of result.logs) {
@@ -532,15 +560,15 @@
                         dueDate: "（ログから復元）",     // ダミーデータを示す
                         status: status
                       });
-                      addLog(`ログから貸出記録情報を復元しました: ${bookTitle}, ${userName}, ${status}`);
+                      // デバッグログ出力を削除
                     }
                   }
                 }
                 if (foundViaLogs && recordsToDisplay.length === 0) {
-                    addLog("ログに「貸出記録発見」はありましたが、詳細情報の抽出に失敗しました。");
+                    // デバッグログ出力を削除
                 }
               } else {
-                  addLog("logs 配列も存在しないか無効です。");
+                  // デバッグログ出力を削除
               }
             }
 
@@ -548,20 +576,20 @@
             if (recordsToDisplay.length > 0) {
               displayRentalRecords(recordsToDisplay);
               setMessage(`書籍ID [${bookId}] の貸出記録が見つかりました。${foundViaRecords ? '' : ' (ログから復元)'}`);
-              addLog(`${recordsToDisplay.length}件の貸出記録を表示します。`);
+              // デバッグログ出力を削除
             } else {
               // recordsにもlogsにも情報がなかった場合
               setMessage(`書籍ID [${bookId}] の貸出記録が見つかりませんでした。`);
               document.getElementById('rental-records').style.display = 'block';
               document.getElementById('records-container').innerHTML = '<p class="no-records">該当する貸出記録はありません。</p>';
-              addLog("表示できる貸出記録が見つかりませんでした。");
+              // デバッグログ出力を削除
             }
             // --- 結果処理ロジックここまで ---
           })
           .withFailureHandler(function(error) {
             // Failure Handlerが呼ばれた場合も明確にログ出力
             setMessage(`検索エラーが発生しました: ${error.message}`);
-            addLog(`サーバー呼び出し失敗: ${error.message}`);
+            // デバッグログ出力を削除
             console.error("サーバー呼び出しエラー:", error);
             // エラー時も「見つかりませんでした」表示を出す
             document.getElementById('rental-records').style.display = 'block';
@@ -573,7 +601,7 @@
       // 貸出記録を表示する関数
       function displayRentalRecords(records) {
         console.log("表示する貸出記録:", records); // デバッグ用
-        addLog(`表示する貸出記録: ${JSON.stringify(records)}`); // デバッグ用
+        // デバッグログ出力を削除
         
         const container = document.getElementById('records-container');
         
@@ -616,14 +644,18 @@
             dueDateStr = record.dueDate;
           }
           
+          // 返却状況に応じたクラスを設定
+          const statusClass = record.status === "返却済" ? "status-returned" : 
+                             record.status === "未返却" ? "status-not-returned" : "";
+          
           html += `
             <tr>
               <td>${record.bookId || 'N/A'}</td>
               <td>${record.bookTitle || 'N/A'}</td>
-              <td>${record.userName || 'N/A'}</td>
+              <td>${record.userName || 'N/A'}<span class="user-id">ID: ${record.userId || 'N/A'}</span></td>
               <td>${lendingDateStr}</td>
               <td>${dueDateStr}</td>
-              <td>${record.status || 'N/A'}</td>
+              <td class="${statusClass}">${record.status || 'N/A'}</td>
             </tr>
           `;
         });

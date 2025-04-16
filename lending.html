@@ -15,7 +15,7 @@
         margin: 0;
         padding: 0; /* bodyのpadding削除 */
         line-height: 1.7; /* 行間を少し広げる */
-        font-size: 1.2rem; /* ベースフォントサイズをさらに大きく */
+        font-size: 1.4rem; /* ベースフォントサイズをさらに大きく */
       }
       .container {
         /* max-width: 700px; */ /* 最大幅削除 */
@@ -47,18 +47,18 @@
       }
       label {
         display: block;
-        margin-bottom: 12px; /* ラベル下のスペースを広げる */
+        margin-bottom: 15px; /* ラベル下のスペースを広げる */
         font-weight: 700; /* 太字 */
         color: #444; /* 少し濃く */
-        font-size: 1.2em; /* ラベルをさらに大きく */
+        font-size: 1.5em; /* ラベルをさらに大きく */
       }
       input[type="text"], input[type="number"] {
         width: 100%;
-        padding: 18px; /* 入力欄のパディングをさらに大きく */
+        padding: 20px; /* 入力欄のパディングをさらに大きく */
         border: 1px solid #aaa; /* 境界線を少し濃く */
-        border-radius: 6px; /* 少し角丸を強く */
+        border-radius: 8px; /* 少し角丸を強く */
         box-sizing: border-box;
-        font-size: 1.2em; /* 入力文字をさらに大きく */
+        font-size: 1.4em; /* 入力文字をさらに大きく */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       input[readonly] {
@@ -68,14 +68,14 @@
       button {
         background-color: #0056b3;
         color: white;
-        padding: 18px 30px; /* ボタンのパディングをさらに大きく */
+        padding: 22px 30px; /* ボタンのパディングをさらに大きく */
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 1.2em; /* ボタン文字をさらに大きく */
+        font-size: 1.4em; /* ボタン文字をさらに大きく */
         font-weight: 700; /* ボタン文字を太く */
         transition: background-color 0.3s ease;
-        margin-top: 10px; /* ボタン間のスペース調整 */
+        margin-top: 15px; /* ボタン間のスペース調整 */
         font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
       }
       button:hover {
@@ -83,10 +83,10 @@
       }
       /* スキャンボタンは少し小さく */
       #scan-book-id-button, #scan-user-button {
-         padding: 15px 20px; /* スキャンボタンのパディング調整 */
+         padding: 18px 25px; /* スキャンボタンのパディング調整 */
          background-color: #6c757d; /* グレー系 */
          margin-right: 10px;
-         font-size: 1.1em; /* スキャンボタンも少し大きく */
+         font-size: 1.3em; /* スキャンボタンも少し大きく */
          font-weight: 400; /* 通常の太さ */
       }
        #scan-book-id-button:hover, #scan-user-button:hover {
@@ -99,8 +99,10 @@
        {
           display: block; /* ブロック要素にして幅を100%に */
           width: 100%;
-          margin-top: 20px;
+          margin-top: 25px;
           background-color: #28a745; /* 成功の色 */
+          padding: 25px 30px; /* ボタンのパディングをさらに大きく */
+          font-size: 1.5em; /* ボタン文字をさらに大きく */
       }
       button[onclick="submitForm()"]:hover {
           background-color: #218838;
@@ -135,10 +137,10 @@
       #message {
         margin-top: 30px; /* 上マージン調整 */
         font-weight: 700; /* 太字 */
-        padding: 18px; /* パディング調整 */
-        border-radius: 6px;
+        padding: 20px; /* パディング調整 */
+        border-radius: 8px;
         text-align: center;
-        font-size: 1.2em; /* メッセージ文字をさらに大きく */
+        font-size: 1.4em; /* メッセージ文字をさらに大きく */
       }
       /* メッセージの種類に応じてスタイルを変える（例） */
       #message:not(:empty) { /* メッセージがある時だけ表示 */
@@ -165,10 +167,10 @@
       @media (max-width: 600px) {
         /* body, .container の padding, margin, max-width, border-radius, box-shadow はベーススタイルで対応済み */
         .container {
-             padding: 10px; /* スマホではコンテナ内パディングを少し減らす */
+             padding: 15px; /* スマホではコンテナ内パディングを少し減らす */
         }
         h1 {
-          font-size: 1.8rem;
+          font-size: 2rem;
           /* スマホ表示用にh1にも少しパディング */
           padding-left: 10px;
           padding-right: 10px;
@@ -182,18 +184,35 @@
         #message {
             margin-left: 10px;
             margin-right: 10px;
+            font-size: 1.3em; /* メッセージ文字をさらに大きく */
         }
         button {
           width: 100%; /* 小画面ではボタン幅を100%に */
           margin-right: 0;
-          margin-bottom: 10px; /* ボタン間の縦スペース */
+          margin-bottom: 15px; /* ボタン間の縦スペース */
+          padding: 20px 25px; /* ボタンのパディングをさらに大きく */
+          font-size: 1.4em; /* ボタン文字をさらに大きく */
         }
-         #scan-book-id-button, #scan-user-button {
-             margin-bottom: 5px; /* スキャンボタン下のスペース */
-         }
-         button:last-of-type {
-             margin-bottom: 0;
-         }
+        #scan-book-id-button, #scan-user-button {
+            margin-bottom: 10px; /* スキャンボタン下のスペース */
+            padding: 20px 25px; /* スキャンボタンのパディング調整 */
+        }
+        button:last-of-type {
+            margin-bottom: 0;
+        }
+        
+        /* 書籍リスト表示エリアをさらに大きく */
+        #book-titles-list {
+            font-size: 1.3em;
+            padding: 15px !important;
+        }
+        
+        /* 貸出ボタンをさらに大きく */
+        button[onclick="submitForm()"] {
+            padding: 25px 30px;
+            font-size: 1.5em;
+            margin-top: 25px;
+        }
       }
     </style>
   </head>
