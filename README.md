@@ -2,6 +2,15 @@
 
 このシステムは、図書館の貸出・返却業務を効率化するためのシンプルなウェブアプリケーションです。Google Apps Script（GAS）を使用して実装されており、バーコードスキャン機能を備えています。
 
+## 参照情報
+
+- **スプレッドシートテンプレート**: [サンプルスプレッドシート](https://docs.google.com/spreadsheets/d/1YBsLeKQln_PxwqQyJpEal87O3nC5Vg29_kRWYYabtr0/copy)
+- **参考システム**: [システム紹介ページ](https://sites.google.com/view/ueno999/top)
+
+## サポート
+
+本システムの利用にあたり、技術的なサポートが必要な場合は、YouTubeチャンネル[GIGAch](https://www.youtube.com/@gigach)の有料メンバーに登録することでサポートを受けることができます。
+
 ## システム概要
 
 本システムは以下の4つの主要機能を提供します：
@@ -104,15 +113,6 @@
 - **バックエンド**: Google Apps Script (GAS)
 - **データストレージ**: Google スプレッドシート
 - **バーコードスキャン**: QuaggaJS ライブラリ
-
-## 参照情報
-
-- **スプレッドシートテンプレート**: [サンプルスプレッドシート](https://docs.google.com/spreadsheets/d/1YBsLeKQln_PxwqQyJpEal87O3nC5Vg29_kRWYYabtr0/edit?usp=sharing)
-- **参考システム**: [システム紹介ページ](https://sites.google.com/view/ueno999/top)
-
-## サポート
-
-本システムの利用にあたり、技術的なサポートが必要な場合は、YouTubeチャンネル[GIGAch](https://www.youtube.com/@gigach)の有料メンバーに登録することでサポートを受けることができます。
 
 ## 開発者情報
 
