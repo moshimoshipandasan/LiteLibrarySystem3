@@ -116,10 +116,11 @@
         max-width: 480px; /* スキャナ表示の最大幅 */
         height: auto;
         overflow: hidden;
-        margin-top: 10px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background-color: #eee; /* 背景色 */
+        margin: 15px auto; /* 上下マージン15px、左右マージンautoで中央揃え */
+        border: 2px solid #0056b3; /* 青い枠線で目立たせる */
+        border-radius: 8px;
+        background-color: #f8f9fa; /* 背景色を少し明るく */
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 影を追加 */
       }
       #interactive.viewport > canvas, #interactive.viewport > video,
       #interactive-user.viewport > canvas, #interactive-user.viewport > video {
@@ -131,6 +132,47 @@
         position: absolute;
         left: 0;
         top: 0;
+      }
+      /* スキャンガイド */
+      .scan-guide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none; /* クリックイベントを透過 */
+        z-index: 10;
+      }
+      .scan-guide::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 70%;
+        height: 30%;
+        border: 2px dashed #dc3545; /* 赤い点線 */
+        border-radius: 4px;
+        box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3); /* 外側を暗く */
+        animation: pulse 2s infinite; /* 点滅アニメーション */
+      }
+      @keyframes pulse {
+        0% { opacity: 0.5; }
+        50% { opacity: 1; }
+        100% { opacity: 0.5; }
+      }
+      /* スキャン中のメッセージ */
+      .scan-message {
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: white;
+        background-color: rgba(0, 86, 179, 0.7); /* 半透明の青 */
+        padding: 5px;
+        font-weight: bold;
+        z-index: 11;
       }
 
       /* --- Message Area --- */
@@ -454,25 +496,44 @@
           Quagga.offDetected(null); // nullを渡して全てのonDetectedリスナーを解除
           Quagga.offProcessed(null); // nullを渡して全てのonProcessedリスナーを解除
         }
+        
+        // スキャンガイドとメッセージを追加
+        const viewport = document.getElementById(targetElementId);
+        
+        // 既存のガイドとメッセージを削除
+        const existingGuide = viewport.querySelector('.scan-guide');
+        if (existingGuide) viewport.removeChild(existingGuide);
+        const existingMessage = viewport.querySelector('.scan-message');
+        if (existingMessage) viewport.removeChild(existingMessage);
+        
+        // 新しいガイドとメッセージを追加
+        const scanGuide = document.createElement('div');
+        scanGuide.className = 'scan-guide';
+        viewport.appendChild(scanGuide);
+        
+        const scanMessage = document.createElement('div');
+        scanMessage.className = 'scan-message';
+        scanMessage.textContent = 'バーコードをガイド内に合わせてください';
+        viewport.appendChild(scanMessage);
 
         Quagga.init({
           inputStream : {
             name : "Live",
             type : "LiveStream",
-            target: document.getElementById(targetElementId),
+            target: viewport,
             constraints: { 
               width: 640,  // 正方形に設定
               height: 640,  // 正方形に設定
               facingMode: "environment" 
             },
-            area: { top: "10%", right: "5%", left: "5%", bottom: "10%" } // スキャンエリアを広げる
+            area: { top: "35%", right: "15%", left: "15%", bottom: "35%" } // スキャンエリアを中央に集中
           },
           locator: { 
             patchSize: "large",  // パッチサイズを大きくして精度向上
             halfSample: false    // 半分サンプリングを無効化して精度向上
           },
           numOfWorkers: navigator.hardwareConcurrency || 4,
-          frequency: 2,          // スキャン頻度を少し上げて精度向上
+          frequency: 3,          // スキャン頻度をさらに上げて精度向上
           decoder : {
              readers : [ 
                'code_128_reader', 
@@ -487,7 +548,8 @@
                drawScanline: true, 
                showPattern: true 
              },
-             multiple: false      // 複数のバーコードを同時に読み取らない
+             multiple: false,     // 複数のバーコードを同時に読み取らない
+             tryHarder: true      // より積極的にスキャンを試みる
           },
           locate: true
         }, function(err) {
