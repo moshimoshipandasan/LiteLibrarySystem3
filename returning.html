@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>図書返却システム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap'); /* Google Font Import */
+
+      /* --- General Styles --- */
+      body {
+        font-family: 'Noto Sans JP', sans-serif; /* Google Font適用 */
+        background-color: #f4f4f4; /* 背景色は維持 */
+        color: #333;
+        margin: 0;
+        padding: 0; /* bodyのpadding削除 */
+        line-height: 1.7; /* 行間を少し広げる */
+        font-size: 1.2rem; /* ベースフォントサイズをさらに大きく */
+      }
+      .container {
+        /* max-width: 700px; */ /* 最大幅削除 */
+        /* margin: 20px auto; */ /* 中央寄せマージン削除 */
+        margin: 0;
+        /* padding: 30px; */ /* padding削除 */
+        padding: 15px; /* 左右に少しだけパディングを残す */
+        background-color: #fff; /* 背景色は維持 */
+        /* border-radius: 8px; */ /* 角丸削除 */
+        /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */ /* 影削除 */
+        width: 100%;
+        min-height: 100vh; /* 画面の高さいっぱいに広げる */
+        box-sizing: border-box; /* paddingを含めて幅100% */
+      }
+      h1 {
+        color: #0056b3; /* 図書館らしい青 */
+        /* text-align: center; */ /* 中央揃え解除、必要なら個別要素で */
+        margin-top: 0; /* 上マージン調整 */
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 20px; /* 下線とのスペース調整 */
+        font-size: 2em; /* 見出しをさらに大きく */
+      }
+
+      /* --- Form Styles --- */
+      .form-group {
+        margin-bottom: 30px; /* グループ間のスペースをさらに広げる */
+      }
+      label {
+        display: block;
+        margin-bottom: 12px; /* ラベル下のスペースを広げる */
+        font-weight: 700; /* 太字 */
+        color: #444; /* 少し濃く */
+        font-size: 1.2em; /* ラベルをさらに大きく */
+      }
+      /* Textarea for multiple IDs */
+      textarea {
+        width: 100%;
+        padding: 18px; /* 入力欄のパディングをさらに大きく */
+        border: 1px solid #aaa; /* 境界線を少し濃く */
+        border-radius: 6px; /* 少し角丸を強く */
+        box-sizing: border-box;
+        font-size: 1.2em; /* 入力文字をさらに大きく */
+        font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
+        resize: vertical; /* 縦方向のリサイズのみ許可 */
+      }
+      button {
+        background-color: #0056b3;
+        color: white;
+        padding: 18px 30px; /* ボタンのパディングをさらに大きく */
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.2em; /* ボタン文字をさらに大きく */
+        font-weight: 700; /* ボタン文字を太く */
+        transition: background-color 0.3s ease;
+        margin-top: 10px; /* ボタン間のスペース調整 */
+        font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
+      }
+      button:hover {
+        background-color: #004494;
+      }
+      /* スキャンボタンは少し小さく */
+      #scan-book-id-button {
+         padding: 15px 20px; /* スキャンボタンのパディング調整 */
+         background-color: #6c757d; /* グレー系 */
+         margin-right: 10px;
+         font-size: 1.1em; /* スキャンボタンも少し大きく */
+         font-weight: 400; /* 通常の太さ */
+      }
+       #scan-book-id-button:hover {
+         background-color: #5a6268;
+      }
+      /* 返却ボタン */
+      #return-button {
+          display: block; /* ブロック要素にして幅を100%に */
+          width: 100%;
+          margin-top: 25px; /* 上マージン調整 */
+          background-color: #dc3545; /* 警告の色 */
+      }
+      #return-button:hover {
+          background-color: #c82333;
+      }
+      #return-button:disabled {
+          background-color: #ccc;
+          cursor: not-allowed;
+      }
+
+
+      /* --- Scanner Viewport --- */
+      #interactive.viewport {
+        position: relative;
+        width: 100%;
+        max-width: 480px; /* スキャナ表示の最大幅 */
+        height: auto;
+        overflow: hidden;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #eee; /* 背景色 */
+      }
+      #interactive.viewport > canvas, #interactive.viewport > video {
+        max-width: 100%;
+        width: 100%;
+        height: auto; /* 高さを自動に */
+      }
+      canvas.drawing, canvas.drawingBuffer {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      /* --- Message Area --- */
+      #message {
+        margin-top: 30px; /* 上マージン調整 */
+        font-weight: 700; /* 太字 */
+        padding: 18px; /* パディング調整 */
+        border-radius: 6px;
+        text-align: center;
+        font-size: 1.2em; /* メッセージ文字をさらに大きく */
+      }
+      #message:not(:empty) {
+         display: block;
+         background-color: #e2f3ff;
+         border: 1px solid #b8dffc;
+         color: #0056b3;
+      }
+
+      /* --- Responsive Design --- */
+      @media (max-width: 600px) {
+         .container { padding: 10px; }
+         h1 { font-size: 1.8rem; padding-left: 10px; padding-right: 10px; }
+         .form-group { padding-left: 10px; padding-right: 10px; }
+         #message { margin-left: 10px; margin-right: 10px; }
+         button { width: 100%; margin-right: 0; margin-bottom: 10px; }
+         #scan-book-id-button { margin-bottom: 5px; }
+         button:last-of-type { margin-bottom: 0; }
+         #return-button { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>図書返却</h1>
+
+      <div class="form-group">
+        <label for="book-ids">返却する書籍ID（連続スキャン可能）</label>
+        <button id="scan-book-id-button">書籍IDをスキャン</button>
+        <textarea id="book-ids" name="bookIds" placeholder="スキャンするか手入力（カンマ区切り）" rows="4" style="font-size: 1.2em; padding: 15px; border: 1px solid #aaa; border-radius: 6px; box-sizing: border-box; width: 100%; font-family: 'Noto Sans JP', sans-serif;"></textarea>
+        <div id="interactive" class="viewport" style="display: none;"></div> <!-- 初期非表示 -->
+      </div>
+      
+      <button id="return-button" onclick="submitReturn()" disabled>一括返却処理</button> <!-- 初期は無効 -->
+      
+      <p id="message"></p>
+      
+    </div>
+
+    <!-- バーコード読み取りライブラリ (QuaggaJSを使用) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+      let isScanning = false;
+      let scannedBookIds = []; // 返却する書籍IDを保持する配列
+      let currentScannerTarget = null; // スキャナー用
+      // ビープ音用のAudioオブジェクト
+      const beepSound = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8DouEimPVuiRkITnEBKDATKJd9ZG/LZZPuQELRJXYmKl7Ds2nJBcXHbNsOg5PRk9J8UxLWGs5FhiGBUAg1xHYDaHR0cDovL3d3dy5yZXNvdXJjZXNwYWNrLmNvbS9ycGcvR2VuZXJhdG9yLw==");
+
+      // --- 初期化処理 ---
+      window.onload = function() {
+        // スキャナービューポートを非表示
+        document.getElementById('interactive').style.display = 'none';
+        // イベントリスナー設定
+        setupEventListeners();
+        updateReturnButtonState(); // 初期状態のボタン制御
+      };
+
+      function setupEventListeners() {
+        // スキャンボタン
+        document.getElementById('scan-book-id-button').addEventListener('click', () => {
+          toggleScanner('interactive', 'book-ids'); // inputFieldIdはtextareaのID
+        });
+        // 書籍ID手入力（カンマ区切り）変更時
+        document.getElementById('book-ids').addEventListener('input', () => {
+            // 手入力の場合は配列を直接更新
+            const idsText = document.getElementById('book-ids').value;
+            scannedBookIds = idsText.split(/[\s,]+/).map(id => id.trim()).filter(id => id); // カンマまたは空白で区切り、空要素を除去
+            updateReturnButtonState();
+        });
+      }
+
+      // --- スキャナー関連関数 ---
+      function toggleScanner(targetElementId, inputFieldId) { // inputFieldIdはtextareaのID
+        const targetViewport = document.getElementById(targetElementId);
+        if (!isScanning) {
+          targetViewport.style.display = 'block';
+          startScanner(targetElementId, inputFieldId);
+          isScanning = true;
+        } else {
+          stopScanner(targetElementId);
+          targetViewport.style.display = 'none';
+          isScanning = false;
+        }
+      }
+
+      function startScanner(targetElementId, inputFieldId) {
+        setMessage("カメラを起動しています...");
+        Quagga.init({
+          inputStream : {
+            name : "Live",
+            type : "LiveStream",
+            target: document.getElementById(targetElementId),
+            constraints: { 
+              width: 640,  // 正方形に設定
+              height: 640,  // 正方形に設定
+              facingMode: "environment" 
+            },
+            area: { top: "10%", right: "5%", left: "5%", bottom: "10%" } // スキャンエリアを広げる
+          },
+          locator: { 
+            patchSize: "large",  // パッチサイズを大きくして精度向上
+            halfSample: false    // 半分サンプリングを無効化して精度向上
+          },
+          numOfWorkers: navigator.hardwareConcurrency || 4,
+          frequency: 2,          // スキャン頻度を少し上げて精度向上
+          decoder : { 
+            readers : [          // 複数のバーコードリーダーを有効化
+              'code_128_reader', 
+              'code_39_reader',
+              'ean_reader',
+              'ean_8_reader',
+              'code_93_reader'
+            ],
+            debug: {
+              drawBoundingBox: true,
+              showFrequency: true,
+              drawScanline: true,
+              showPattern: true
+            },
+            multiple: false      // 複数のバーコードを同時に読み取らない
+          },
+          locate: true
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                setMessage(`スキャナーの初期化に失敗: ${err.name}. カメラへのアクセスを許可してください。`);
+                document.getElementById(targetElementId).style.display = 'none';
+                isScanning = false;
+                return;
+            }
+            setMessage("バーコードをカメラに向けてください。");
+            Quagga.start();
+        });
+
+        Quagga.onProcessed(function(result) {
+          // 描画処理を追加
+          var drawingCtx = Quagga.canvas.ctx.overlay,
+              drawingCanvas = Quagga.canvas.dom.overlay;
+          
+          if (result) {
+            if (result.boxes) {
+              drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+              result.boxes.filter(function (box) {
+                return box !== result.box;
+              }).forEach(function (box) {
+                Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+              });
+            }
+            
+            if (result.box) {
+              Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+            }
+            
+            if (result.codeResult && result.codeResult.code) {
+              Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+            }
+          }
+        });
+
+        // 重複防止のためのタイムスタンプと前回のコード
+        let lastDetectedTime = 0;
+        let lastDetectedCode = null;
+        const COOLDOWN_PERIOD = 3000; // 同じコードを再検出するまでの待機時間（ミリ秒）
+        
+        Quagga.onDetected(function(result) {
+          const code = result.codeResult.code;
+          const currentTime = new Date().getTime();
+          console.log("バーコード検出:", code, "信頼度:", result.codeResult.confidence);
+          
+          // 信頼度が低い場合はスキップ（閾値を下げて検出率向上）
+          if (result.codeResult.confidence < 0.5) {
+            console.log("信頼度が低いため無視します:", result.codeResult.confidence);
+            return;
+          }
+          
+          // 前回と同じコードで、クールダウン期間内の場合はスキップ
+          if (code === lastDetectedCode && (currentTime - lastDetectedTime) < COOLDOWN_PERIOD) {
+            console.log(`同じコードが短時間で検出されました。無視します。経過時間: ${currentTime - lastDetectedTime}ms`);
+            return;
+          }
+          
+          // 新しいコードとして処理
+          lastDetectedCode = code;
+          lastDetectedTime = currentTime;
+          
+          // ビープ音を再生
+          playBeepSound();
+          
+          addBookIdToList(code); // スキャンしたIDをリストに追加
+          setMessage(`書籍ID [${code}] を追加しました。`);
+          // 連続スキャンのため停止しない
+        });
+      }
+
+      function stopScanner(targetElementId) {
+         if (typeof Quagga !== 'undefined' && Quagga.initialized) {
+            Quagga.offDetected(null);
+            Quagga.offProcessed(null);
+            Quagga.stop();
+            const viewport = document.getElementById(targetElementId);
+            if (viewport) {
+              const canvas = viewport.querySelector('canvas');
+              if (canvas) viewport.removeChild(canvas);
+              const video = viewport.querySelector('video');
+              if (video) viewport.removeChild(video);
+            }
+         }
+      }
+
+      // --- データ処理関数 ---
+
+      // スキャンまたは手入力された書籍IDをリストに追加する関数
+      function addBookIdToList(bookId) {
+          if (!bookId) return;
+          const trimmedId = bookId.trim();
+          if (!trimmedId) return;
+
+          // 重複チェック
+          if (!scannedBookIds.includes(trimmedId)) {
+              scannedBookIds.push(trimmedId);
+              updateBookIdDisplay();
+              updateReturnButtonState();
+              setMessage(`書籍ID [${trimmedId}] をリストに追加しました。`);
+          } else {
+              setMessage(`書籍ID [${trimmedId}] は既に追加されています。`);
+          }
+          // textareaの内容も更新
+          document.getElementById('book-ids').value = scannedBookIds.join(', ');
+      }
+
+      // 書籍IDリスト表示を更新する関数
+      function updateBookIdDisplay() {
+          document.getElementById('book-ids').value = scannedBookIds.join(', ');
+      }
+
+       // 返却ボタンの有効/無効状態を更新する関数
+      function updateReturnButtonState() {
+          const returnButton = document.getElementById('return-button');
+          if (scannedBookIds.length > 0) {
+              returnButton.disabled = false;
+          } else {
+              returnButton.disabled = true;
+          }
+      }
+
+      // 状態をリセットする関数
+      function resetReturnState() {
+          scannedBookIds = [];
+          document.getElementById('book-ids').value = '';
+          updateReturnButtonState();
+      }
+
+      // 一括返却処理実行 (GAS側を呼び出す)
+      function submitReturn() {
+          // textareaから最新のIDリストを取得（手入力対応）
+          const idsText = document.getElementById('book-ids').value;
+          scannedBookIds = idsText.split(/[\s,]+/).map(id => id.trim()).filter(id => id);
+
+          if (scannedBookIds.length === 0) {
+              setMessage("返却する書籍IDがありません。");
+              return;
+          }
+
+          setMessage("一括返却処理を実行中...");
+          document.getElementById('return-button').disabled = true; // 処理中はボタン無効化
+
+          google.script.run
+              .withSuccessHandler(response => {
+                  setMessage(response.message || "処理が完了しましたが、メッセージがありません。"); // メッセージ表示
+                  // 成功したら状態をリセット
+                  if (response && response.message && response.message.includes("成功")) {
+                     resetReturnState();
+                  } else {
+                      // 失敗した場合でもボタンは有効に戻す
+                      document.getElementById('return-button').disabled = false;
+                  }
+                  // サーバーからのログは無視
+              })
+              .withFailureHandler(error => {
+                  setMessage(`一括返却処理失敗: ${error.message}`);
+                  console.error("一括返却エラー:", error);
+                  document.getElementById('return-button').disabled = false; // エラー時もボタン有効化
+              })
+              .processBulkReturn(scannedBookIds); // 新しいサーバー関数を呼び出す
+      }
+
+      // --- ユーティリティ関数 ---
+      // ビープ音を再生する関数
+      function playBeepSound() {
+        try {
+          // 音量設定
+          beepSound.volume = 0.5;
+          // 再生位置を先頭に戻す（連続で鳴らせるように）
+          beepSound.currentTime = 0;
+          // 音を再生
+          beepSound.play().catch(e => console.error("ビープ音の再生に失敗:", e));
+        } catch (e) {
+          console.error("ビープ音の再生中にエラーが発生:", e);
+        }
+      }
+      
+      function setMessage(msg) {
+        document.getElementById('message').innerText = msg;
+      }
+
+    </script>
+  </body>
+</html>

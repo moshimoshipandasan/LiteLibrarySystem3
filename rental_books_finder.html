@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>貸出書籍検索システム</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap'); /* Google Font Import */
+
+      /* --- General Styles --- */
+      body {
+        font-family: 'Noto Sans JP', sans-serif; /* Google Font適用 */
+        background-color: #f4f4f4; /* 背景色は維持 */
+        color: #333;
+        margin: 0;
+        padding: 0; /* bodyのpadding削除 */
+        line-height: 1.7; /* 行間を少し広げる */
+        font-size: 1.2rem; /* ベースフォントサイズをさらに大きく */
+      }
+      .container {
+        /* max-width: 800px; */ /* 最大幅削除 */
+        /* margin: 20px auto; */ /* 中央寄せマージン削除 */
+        margin: 0;
+        /* padding: 30px; */ /* padding削除 */
+        padding: 15px; /* 左右に少しだけパディングを残す */
+        background-color: #fff; /* 背景色は維持 */
+        /* border-radius: 8px; */ /* 角丸削除 */
+        /* box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1); */ /* 影削除 */
+        width: 100%;
+        min-height: 100vh; /* 画面の高さいっぱいに広げる */
+        box-sizing: border-box; /* paddingを含めて幅100% */
+      }
+      h1, h2 { /* h2もスタイル適用 */
+        color: #0056b3; /* 図書館らしい青 */
+        /* text-align: center; */ /* 中央揃え解除、必要なら個別要素で */
+        margin-top: 0; /* 上マージン調整 */
+        text-align: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #eee;
+        padding-bottom: 20px; /* 下線とのスペース調整 */
+        font-size: 2em; /* 見出しをさらに大きく */
+      }
+      h2 {
+          margin-top: 40px; /* 検索結果の見出し上にスペース */
+          text-align: left; /* 検索結果は左揃え */
+          border-bottom: none; /* 下線なし */
+          font-size: 1.7em; /* h2もさらに大きく */
+          color: #0056b3; /* h1と同じ色 */
+          padding-left: 10px; /* スマホ表示用 */
+          padding-right: 10px; /* スマホ表示用 */
+      }
+
+      /* --- Form Styles --- */
+      .form-group {
+        margin-bottom: 30px; /* グループ間のスペースをさらに広げる */
+      }
+      label {
+        display: block;
+        margin-bottom: 12px; /* ラベル下のスペースを広げる */
+        font-weight: 700; /* 太字 */
+        color: #444; /* 少し濃く */
+        font-size: 1.2em; /* ラベルをさらに大きく */
+      }
+      input[type="text"], input[type="number"] { /* numberも追加 */
+        width: 100%;
+        padding: 18px; /* 入力欄のパディングをさらに大きく */
+        border: 1px solid #aaa; /* 境界線を少し濃く */
+        border-radius: 6px; /* 少し角丸を強く */
+        box-sizing: border-box;
+        font-size: 1.2em; /* 入力文字をさらに大きく */
+        font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
+      }
+      input[readonly] {
+        background-color: #e9ecef;
+        cursor: not-allowed;
+      }
+      button {
+        background-color: #0056b3;
+        color: white;
+        padding: 18px 30px; /* ボタンのパディングをさらに大きく */
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 1.2em; /* ボタン文字をさらに大きく */
+        font-weight: 700; /* ボタン文字を太く */
+        transition: background-color 0.3s ease;
+        margin-top: 10px; /* ボタン間のスペース調整 */
+        font-family: 'Noto Sans JP', sans-serif; /* フォント継承 */
+      }
+      button:hover {
+        background-color: #004494;
+      }
+      /* スキャンボタンは少し小さく */
+      #scan-book-id-button { /* ID修正 */
+         padding: 15px 20px; /* スキャンボタンのパディング調整 */
+         background-color: #6c757d; /* グレー系 */
+         margin-right: 10px;
+         font-size: 1.1em; /* スキャンボタンも少し大きく */
+         font-weight: 400; /* 通常の太さ */
+      }
+       #scan-book-id-button:hover { /* ID修正 */
+         background-color: #5a6268;
+      }
+      /* 検索ボタン */
+      button[onclick="searchRentalRecords()"] {
+          margin-top: 15px; /* 上に少しスペース */
+          /* 他のボタンとスタイルを合わせる */
+          font-weight: 400;
+          padding: 15px 25px; /* パディング調整 */
+          font-size: 1.1em; /* 少し小さめでも良い */
+      }
+
+
+      /* --- Scanner Viewport --- */
+      #interactive.viewport { /* ID修正 */
+        position: relative;
+        width: 100%;
+        max-width: 480px; /* スキャナ表示の最大幅 */
+        height: auto;
+        overflow: hidden;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background-color: #eee; /* 背景色 */
+      }
+      #interactive.viewport > canvas, #interactive.viewport > video { /* ID修正 */
+        max-width: 100%;
+        width: 100%;
+        height: auto; /* 高さを自動に */
+      }
+      canvas.drawing, canvas.drawingBuffer {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+
+      /* --- Results Area --- */
+      #rental-records {
+        margin-top: 30px;
+      }
+      #records-container {
+          overflow-x: auto; /* テーブルがはみ出す場合にスクロール */
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px; /* テーブル上のスペース調整 */
+        font-size: 1.15em; /* テーブル文字をさらに大きく */
+      }
+      th, td {
+        padding: 18px; /* セルのパディングをさらに大きく */
+        text-align: left;
+        border-bottom: 1px solid #d0d0d0; /* 線を少し濃く */
+      }
+      th {
+        background-color: #e9ecef; /* ヘッダー背景色 */
+        color: #495057;
+        font-weight: 700; /* ヘッダー太字 */
+        white-space: nowrap; /* ヘッダーは折り返さない */
+      }
+      tr:nth-child(even) {
+          background-color: #f8f9fa; /* 交互に背景色 */
+      }
+      tr:hover {
+        background-color: #e2e6ea; /* ホバー色 */
+      }
+      .no-records {
+        font-style: italic;
+        color: #666;
+        text-align: center;
+        padding: 25px; /* パディング調整 */
+        font-size: 1.1em; /* 少し大きく */
+      }
+
+
+      /* --- Message Area --- */
+      #message {
+        margin-top: 30px; /* 上マージン調整 */
+        font-weight: 700; /* 太字 */
+        padding: 18px; /* パディング調整 */
+        border-radius: 6px;
+        text-align: center;
+        font-size: 1.2em; /* メッセージ文字をさらに大きく */
+      }
+      /* メッセージの種類に応じてスタイルを変える（例） */
+      #message:not(:empty) { /* メッセージがある時だけ表示 */
+         display: block;
+         background-color: #e2f3ff; /* 情報メッセージの背景 */
+         border: 1px solid #b8dffc;
+         color: #0056b3;
+      }
+      /* エラーメッセージ用のスタイル（必要ならJSでクラスを付与） */
+      /*
+      #message.error {
+         background-color: #f8d7da;
+         border-color: #f5c6cb;
+         color: #721c24;
+      }
+      #message.success {
+         background-color: #d4edda;
+         border-color: #c3e6cb;
+         color: #155724;
+      }
+      */
+
+      /* --- Responsive Design --- */
+      @media (max-width: 768px) { /* テーブルがあるのでブレークポイント調整 */
+        /* .container の調整は下の 600px で行う */
+        th, td {
+            padding: 12px 10px; /* スマホではテーブルパディングを調整 */
+            font-size: 1.1em; /* スマホではテーブル文字サイズ少し調整 */
+        }
+      }
+      @media (max-width: 600px) {
+         /* body, .container の padding, margin, max-width, border-radius, box-shadow はベーススタイルで対応済み */
+         .container {
+             padding: 10px; /* スマホではコンテナ内パディングを少し減らす */
+         }
+        h1 {
+          font-size: 1.8rem;
+           /* スマホ表示用にh1にも少しパディング */
+          padding-left: 10px;
+          padding-right: 10px;
+        }
+         /* .form-group にも左右パディングを追加 */
+        .form-group {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+         /* 検索結果エリアにもパディング */
+        #rental-records {
+             padding-left: 10px;
+             padding-right: 10px;
+        }
+        /* メッセージエリアにもパディング */
+        #message {
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+        button {
+          width: 100%; /* 小画面ではボタン幅を100%に */
+          margin-right: 0;
+          margin-bottom: 10px; /* ボタン間の縦スペース */
+        }
+         #scan-book-id-button { /* ID修正 */
+             margin-bottom: 5px; /* スキャンボタン下のスペース */
+         }
+         button:last-of-type {
+             margin-bottom: 0;
+         }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>貸出書籍検索</h1>
+
+      <div class="form-group">
+        <label for="book-id">検索する書籍ID</label>
+        <button id="scan-book-id-button">書籍IDをスキャン</button>
+        <input type="text" id="book-id" name="bookId" placeholder="スキャンするか手入力してください">
+        <div id="interactive" class="viewport"></div>
+      </div>
+
+      <button onclick="searchRentalRecords()">検索</button>
+      <p id="message"></p>
+
+      <div id="rental-records" style="display: none;">
+        <h2>検索結果</h2>
+        <div id="records-container"></div>
+      </div>
+      
+      <!-- デバッグログ表示エリア -->
+      <div id="debug-log">
+        <h3>デバッグログ</h3>
+        <pre id="log-content"></pre>
+        <button onclick="toggleDebugLog()">ログ表示切替</button>
+      </div>
+    </div>
+
+    <!-- バーコード読み取りライブラリ (QuaggaJSを使用) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <script>
+      let isScanning = false;
+      // ビープ音用のAudioオブジェクト
+      const beepSound = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8DouEimPVuiRkITnEBKDATKJd9ZG/LZZPuQELRJXYmKl7Ds2nJBcXHbNsOg5PRk9J8UxLWGs5FhiGBUAg1xHYDaHR0cDovL3d3dy5yZXNvdXJjZXNwYWNrLmNvbS9ycGcvR2VuZXJhdG9yLw==");
+
+      // ページ読み込み完了時の処理
+      window.onload = function() {
+        // 初期状態ではスキャナービューポートを非表示にする
+        document.getElementById('interactive').style.display = 'none';
+        // 初期状態ではデバッグログを非表示にする
+        document.getElementById('debug-log').style.display = 'none';
+      };
+
+      // スキャンボタンの処理
+      document.getElementById('scan-book-id-button').addEventListener('click', () => {
+        toggleScanner('interactive', 'book-id');
+      });
+
+      // スキャナーの表示/非表示を切り替える関数
+      function toggleScanner(targetElementId, inputFieldId) {
+        const targetViewport = document.getElementById(targetElementId);
+        if (!isScanning) {
+          targetViewport.style.display = 'block';
+          startScanner(targetElementId, inputFieldId);
+          isScanning = true;
+        } else {
+          stopScanner(targetElementId);
+          targetViewport.style.display = 'none';
+          isScanning = false;
+        }
+      }
+
+      function startScanner(targetElementId, inputFieldId) {
+        setMessage("カメラを起動しています...");
+        Quagga.init({
+          inputStream : {
+            name : "Live",
+            type : "LiveStream",
+            target: document.getElementById(targetElementId),
+            constraints: {
+              width: 640,  // 正方形に設定
+              height: 640,  // 正方形に設定
+              facingMode: "environment"
+            },
+            area: { top: "10%", right: "5%", left: "5%", bottom: "10%" } // スキャンエリアを広げる
+          },
+          locator: { 
+            patchSize: "large",  // パッチサイズを大きくして精度向上
+            halfSample: false    // 半分サンプリングを無効化して精度向上
+          },
+          numOfWorkers: navigator.hardwareConcurrency || 4,
+          frequency: 2,          // スキャン頻度を少し上げて精度向上
+          decoder : { 
+            readers : [          // 複数のバーコードリーダーを有効化
+              'code_128_reader',
+              'code_39_reader',
+              'ean_reader',
+              'ean_8_reader',
+              'code_93_reader'
+            ],
+            debug: {
+              drawBoundingBox: true,
+              showFrequency: true,
+              drawScanline: true,
+              showPattern: true
+            },
+            multiple: false      // 複数のバーコードを同時に読み取らない
+          },
+          locate: true
+        }, function(err) {
+            if (err) {
+                console.error(err);
+                setMessage(`スキャナーの初期化に失敗: ${err.name}. カメラへのアクセスを許可してください。`);
+                document.getElementById(targetElementId).style.display = 'none';
+                isScanning = false;
+                return;
+            }
+            console.log("スキャナー初期化完了");
+            setMessage("バーコードをカメラに向けてください。");
+            Quagga.start();
+        });
+
+        Quagga.onProcessed(function(result) {
+          // 描画処理を追加
+          var drawingCtx = Quagga.canvas.ctx.overlay,
+              drawingCanvas = Quagga.canvas.dom.overlay;
+          
+          if (result) {
+            if (result.boxes) {
+              drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+              result.boxes.filter(function (box) {
+                return box !== result.box;
+              }).forEach(function (box) {
+                Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+              });
+            }
+            
+            if (result.box) {
+              Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2});
+            }
+            
+            if (result.codeResult && result.codeResult.code) {
+              Quagga.ImageDebug.drawPath(result.line, {x: 'x', y: 'y'}, drawingCtx, {color: 'red', lineWidth: 3});
+            }
+          }
+        });
+
+        // 重複防止のためのタイムスタンプと前回のコード
+        let lastDetectedTime = 0;
+        let lastDetectedCode = null;
+        const COOLDOWN_PERIOD = 3000; // 同じコードを再検出するまでの待機時間（ミリ秒）
+        
+        Quagga.onDetected(function(result) {
+          const code = result.codeResult.code;
+          const currentTime = new Date().getTime();
+          console.log("バーコード検出:", code, "信頼度:", result.codeResult.confidence);
+          
+          // 信頼度が低い場合はスキップ（閾値を下げて検出率向上）
+          if (result.codeResult.confidence < 0.5) {
+            console.log("信頼度が低いため無視します:", result.codeResult.confidence);
+            return;
+          }
+          
+          // 前回と同じコードで、クールダウン期間内の場合はスキップ
+          if (code === lastDetectedCode && (currentTime - lastDetectedTime) < COOLDOWN_PERIOD) {
+            console.log(`同じコードが短時間で検出されました。無視します。経過時間: ${currentTime - lastDetectedTime}ms`);
+            return;
+          }
+          
+          // 新しいコードとして処理
+          lastDetectedCode = code;
+          lastDetectedTime = currentTime;
+          
+          document.getElementById(inputFieldId).value = code;
+          setMessage(`コード「${code}」を読み取りました。`);
+          
+          // ビープ音を再生
+          playBeepSound();
+          
+          stopScanner(targetElementId);
+          document.getElementById(targetElementId).style.display = 'none';
+          isScanning = false;
+          searchRentalRecords(); // 書籍IDが読み取れたら自動的に検索
+        });
+      }
+
+      function stopScanner(targetElementId) {
+         if (Quagga.initialized) {
+            Quagga.stop();
+            const viewport = document.getElementById(targetElementId);
+            if (viewport) {
+              const canvas = viewport.querySelector('canvas');
+              if (canvas) viewport.removeChild(canvas);
+              const video = viewport.querySelector('video');
+              if (video) viewport.removeChild(video);
+            }
+            console.log("スキャナー停止");
+         }
+      }
+
+      // デバッグログの表示/非表示を切り替える関数
+      function toggleDebugLog() {
+        const debugLog = document.getElementById('debug-log');
+        if (debugLog.style.display === 'none') {
+          debugLog.style.display = 'block';
+        } else {
+          debugLog.style.display = 'none';
+        }
+      }
+      
+      // ログを追加する関数
+      function addLog(message) {
+        const logContent = document.getElementById('log-content');
+        const timestamp = new Date().toLocaleTimeString();
+        logContent.innerHTML += `[${timestamp}] ${message}\n`;
+        document.getElementById('debug-log').style.display = 'block'; // ログがあれば表示する
+        // 自動スクロール
+        logContent.scrollTop = logContent.scrollHeight;
+      }
+
+      // 貸出記録を検索する関数
+      function searchRentalRecords() {
+        const bookId = document.getElementById('book-id').value.trim();
+        if (!bookId) {
+          setMessage("書籍IDを入力またはスキャンしてください。");
+          return;
+        }
+
+        setMessage("貸出記録を検索中...");
+        document.getElementById('rental-records').style.display = 'none';
+        document.getElementById('records-container').innerHTML = '';
+        
+        addLog(`書籍ID [${bookId}] の貸出記録を検索します...`);
+        
+        google.script.run
+          .withSuccessHandler((result) => {
+            console.log("検索結果:", result); // デバッグ用
+            addLog(`検索結果データ構造: ${JSON.stringify(result)}`); // デバッグ用
+            
+            if (result && result.logs) {
+              // ログ情報がある場合は表示
+              result.logs.forEach(log => addLog(log));
+            }
+            
+            // 詳細なデバッグ情報
+            if (result) {
+              addLog(`result オブジェクト: ${Object.keys(result).join(', ')}`);
+              if (result.records) {
+                addLog(`records 配列の長さ: ${result.records.length}`);
+                if (result.records.length > 0) {
+                  addLog(`最初のレコード: ${JSON.stringify(result.records[0])}`);
+                }
+              } else {
+                addLog(`records プロパティが存在しません`);
+              }
+            } else {
+              addLog(`result オブジェクトが null または undefined です`);
+            }
+            
+            // --- 結果処理ロジックの改善 ---
+            let recordsToDisplay = [];
+            let foundViaRecords = false;
+            let foundViaLogs = false;
+
+            // 1. result と result.records が正常に存在するか確認
+            if (result && result.records && Array.isArray(result.records) && result.records.length > 0) {
+              recordsToDisplay = result.records;
+              foundViaRecords = true;
+              addLog(`${result.records.length}件の貸出記録をサーバーから直接受け取りました。`);
+            } else {
+              addLog("サーバーから返された records 配列は空または無効です。ログからの復元を試みます。");
+              // 2. records がダメなら、logs から「貸出記録発見」を探す
+              if (result && result.logs && Array.isArray(result.logs)) {
+                for (const log of result.logs) {
+                  if (log.includes("貸出記録発見")) {
+                    foundViaLogs = true;
+                    // ログから情報を抽出してダミーレコードを作成
+                    const match = log.match(/貸出記録発見 \(行 \d+\): (.*), (.*), 状態=(.*)/);
+                    if (match) {
+                      const bookTitle = match[1];
+                      const userName = match[2];
+                      const status = match[3];
+                      
+                      // ダミーレコードを追加 (日付は文字列として扱う)
+                      recordsToDisplay.push({
+                        bookId: bookId,
+                        bookTitle: bookTitle,
+                        userName: userName,
+                        lendingDate: "（ログから復元）", // ダミーデータを示す
+                        dueDate: "（ログから復元）",     // ダミーデータを示す
+                        status: status
+                      });
+                      addLog(`ログから貸出記録情報を復元しました: ${bookTitle}, ${userName}, ${status}`);
+                    }
+                  }
+                }
+                if (foundViaLogs && recordsToDisplay.length === 0) {
+                    addLog("ログに「貸出記録発見」はありましたが、詳細情報の抽出に失敗しました。");
+                }
+              } else {
+                  addLog("logs 配列も存在しないか無効です。");
+              }
+            }
+
+            // 3. 表示処理
+            if (recordsToDisplay.length > 0) {
+              displayRentalRecords(recordsToDisplay);
+              setMessage(`書籍ID [${bookId}] の貸出記録が見つかりました。${foundViaRecords ? '' : ' (ログから復元)'}`);
+              addLog(`${recordsToDisplay.length}件の貸出記録を表示します。`);
+            } else {
+              // recordsにもlogsにも情報がなかった場合
+              setMessage(`書籍ID [${bookId}] の貸出記録が見つかりませんでした。`);
+              document.getElementById('rental-records').style.display = 'block';
+              document.getElementById('records-container').innerHTML = '<p class="no-records">該当する貸出記録はありません。</p>';
+              addLog("表示できる貸出記録が見つかりませんでした。");
+            }
+            // --- 結果処理ロジックここまで ---
+          })
+          .withFailureHandler(function(error) {
+            // Failure Handlerが呼ばれた場合も明確にログ出力
+            setMessage(`検索エラーが発生しました: ${error.message}`);
+            addLog(`サーバー呼び出し失敗: ${error.message}`);
+            console.error("サーバー呼び出しエラー:", error);
+            // エラー時も「見つかりませんでした」表示を出す
+            document.getElementById('rental-records').style.display = 'block';
+            document.getElementById('records-container').innerHTML = '<p class="no-records">検索中にエラーが発生しました。</p>';
+          })
+          .findRentalRecords(bookId);
+      }
+
+      // 貸出記録を表示する関数
+      function displayRentalRecords(records) {
+        console.log("表示する貸出記録:", records); // デバッグ用
+        addLog(`表示する貸出記録: ${JSON.stringify(records)}`); // デバッグ用
+        
+        const container = document.getElementById('records-container');
+        
+        // テーブルを作成
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th>書籍ID</th>
+                <th>書籍名</th>
+                <th>利用者名</th>
+                <th>貸出日時</th>
+                <th>返却予定日</th>
+                <th>返却状況</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        // レコードごとに行を追加
+        records.forEach(record => {
+          console.log("レコード詳細:", record); // デバッグ用
+          
+          // 日付文字列をフォーマット (ISO文字列からDateオブジェクトを生成)
+          let lendingDateStr = 'N/A';
+          if (record.lendingDate && typeof record.lendingDate === 'string' && record.lendingDate !== '（ログから復元）') {
+            try {
+              lendingDateStr = new Date(record.lendingDate).toLocaleString();
+            } catch (e) { console.error("貸出日時のパースエラー:", e); }
+          } else if (record.lendingDate === '（ログから復元）') {
+            lendingDateStr = record.lendingDate;
+          }
+          
+          let dueDateStr = 'N/A';
+           if (record.dueDate && typeof record.dueDate === 'string' && record.dueDate !== '（ログから復元）') {
+            try {
+              dueDateStr = new Date(record.dueDate).toLocaleDateString(); // 日付のみ表示
+            } catch (e) { console.error("返却予定日のパースエラー:", e); }
+          } else if (record.dueDate === '（ログから復元）') {
+            dueDateStr = record.dueDate;
+          }
+          
+          html += `
+            <tr>
+              <td>${record.bookId || 'N/A'}</td>
+              <td>${record.bookTitle || 'N/A'}</td>
+              <td>${record.userName || 'N/A'}</td>
+              <td>${lendingDateStr}</td>
+              <td>${dueDateStr}</td>
+              <td>${record.status || 'N/A'}</td>
+            </tr>
+          `;
+        });
+        
+        html += `
+            </tbody>
+          </table>
+        `;
+        
+        container.innerHTML = html;
+        document.getElementById('rental-records').style.display = 'block';
+      }
+
+      // ビープ音を再生する関数
+      function playBeepSound() {
+        try {
+          // 音量設定
+          beepSound.volume = 0.5;
+          // 再生位置を先頭に戻す（連続で鳴らせるように）
+          beepSound.currentTime = 0;
+          // 音を再生
+          beepSound.play().catch(e => console.error("ビープ音の再生に失敗:", e));
+        } catch (e) {
+          console.error("ビープ音の再生中にエラーが発生:", e);
+        }
+      }
+
+      function setMessage(msg) {
+        document.getElementById('message').innerText = msg;
+      }
+
+      // 書籍IDが手入力された場合にEnterキーで検索を実行
+      document.getElementById('book-id').addEventListener('keypress', (event) => {
+        if (event.key === 'Enter' && !isScanning) {
+          searchRentalRecords();
+        }
+      });
+    </script>
+  </body>
+</html>
