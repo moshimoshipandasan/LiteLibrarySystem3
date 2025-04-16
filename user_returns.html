@@ -666,10 +666,22 @@
             console.log("一括返却結果:", result);
             
             if (result && result.message) {
+              // 成功メッセージを表示
               setMessage(result.message);
+              
               // 返却処理後、未返却一覧を再取得
               const userId = document.getElementById('user-id').value.trim();
+              
+              // 入力フォームを初期化して次の入力に備える
+              selectedBookIds = []; // 選択リストをリセット
+              
+              // 再検索
               fetchUnreturnedBooks(userId);
+              
+              // フォーカスを利用者ID入力欄に移動
+              setTimeout(() => {
+                document.getElementById('user-id').focus();
+              }, 500);
             } else {
               setMessage("返却処理の結果が不明です。");
             }

@@ -149,6 +149,94 @@
          border: 1px solid #b8dffc;
          color: #0056b3;
       }
+      
+      /* --- 書籍リストテーブルスタイル --- */
+      #records-container {
+          overflow-x: auto; /* テーブルがはみ出す場合にスクロール */
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px; /* テーブル上のスペース調整 */
+        font-size: 1.3em; /* テーブル文字をさらに大きく */
+      }
+      th, td {
+        padding: 20px; /* セルのパディングをさらに大きく */
+        text-align: left;
+        border-bottom: 1px solid #d0d0d0; /* 線を少し濃く */
+      }
+      th {
+        background-color: #e9ecef; /* ヘッダー背景色 */
+        color: #495057;
+        font-weight: 700; /* ヘッダー太字 */
+        white-space: nowrap; /* ヘッダーは折り返さない */
+      }
+      tr:nth-child(even) {
+          background-color: #f8f9fa; /* 交互に背景色 */
+      }
+      tr:hover {
+        background-color: #e2e6ea; /* ホバー色 */
+      }
+      .checkbox-cell {
+        width: 40px;
+        text-align: center;
+      }
+      .book-checkbox {
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+      }
+      
+      /* テーブルのレスポンシブ対応 */
+      @media (max-width: 768px) {
+        th, td {
+            padding: 15px 12px; /* スマホではテーブルパディングを調整 */
+            font-size: 1.2em; /* スマホではテーブル文字サイズ少し調整 */
+        }
+        
+        /* テーブルのレスポンシブ対応を強化 */
+        table, thead, tbody, th, td, tr {
+            display: block;
+        }
+        
+        /* ヘッダーを非表示 */
+        thead tr {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+        }
+        
+        tr {
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #fff;
+        }
+        
+        td {
+            /* tdをブロック要素として表示し、各セルの前にラベルを表示 */
+            position: relative;
+            padding-left: 50%;
+            border: none;
+            border-bottom: 1px solid #eee;
+        }
+        
+        td:before {
+            /* ラベルとして使用するコンテンツ */
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            width: 45%;
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        
+        /* 各セルのラベル */
+        td:nth-of-type(1):before { content: "選択"; }
+        td:nth-of-type(2):before { content: "書籍ID"; }
+        td:nth-of-type(3):before { content: "書籍名"; }
+      }
       /* エラーメッセージ用のスタイル（必要ならJSでクラスを付与） */
       /*
       #message.error {
@@ -246,9 +334,22 @@
 
           <div class="form-group">
             <label for="book-titles">貸出書籍リスト</label>
-            <!-- 書籍名をリスト表示するエリア -->
-            <div id="book-titles-list" style="min-height: 50px; background-color: #e9ecef; border: 1px solid #aaa; border-radius: 6px; padding: 10px;">
-              <!-- ここに書籍名が追加される -->
+            <!-- 書籍名をテーブル表示するエリア -->
+            <div id="book-titles-list" style="min-height: 50px; background-color: #e9ecef; border: 1px solid #aaa; border-radius: 6px; padding: 10px; overflow-x: auto;">
+              <div id="records-container">
+                <table id="books-table" style="display: none;">
+                  <thead>
+                    <tr>
+                      <th class="checkbox-cell">選択</th>
+                      <th>書籍ID</th>
+                      <th>書籍名</th>
+                    </tr>
+                  </thead>
+                  <tbody id="books-table-body">
+                    <!-- ここに書籍行が追加される -->
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
       </fieldset>
@@ -264,8 +365,7 @@
       let bookIdScanning = false;
       let userScanning = false;
       let currentScannerTarget = null;
-      let scannedBookIds = []; // スキャンした書籍IDを保持する配列
-      let scannedBookTitles = []; // スキャンした書籍名を保持する配列
+      let scannedBooks = []; // スキャンした書籍情報を保持する配列 [{id: string, title: string, checked: boolean}]
       let currentUserId = null; // 確定した利用者ID
       let currentUserName = null; // 確定した利用者名
       // ビープ音用のAudioオブジェクト
@@ -542,7 +642,8 @@
           if (!trimmedBookId) return;
 
           // 重複チェック
-          if (scannedBookIds.includes(trimmedBookId)) {
+          const existingBook = scannedBooks.find(book => book.id === trimmedBookId);
+          if (existingBook) {
               setMessage(`書籍ID [${trimmedBookId}] は既に追加されています。`);
               clearBookIdInput();
               return;
@@ -552,8 +653,12 @@
           google.script.run
               .withSuccessHandler(bookDetails => {
                   if (bookDetails && bookDetails.title) {
-                      scannedBookIds.push(trimmedBookId);
-                      scannedBookTitles.push(bookDetails.title);
+                      // 新しい書籍情報をオブジェクトとして追加
+                      scannedBooks.push({
+                          id: trimmedBookId,
+                          title: bookDetails.title,
+                          checked: true // デフォルトでチェック済み
+                      });
                       updateBookDisplay();
                       setMessage(`書籍「${bookDetails.title}」を追加しました。`);
                   } else {
@@ -577,25 +682,63 @@
 
       // 書籍IDと書籍名の表示を更新する関数
       function updateBookDisplay() {
-          // 書籍ID入力欄はクリアするので、ここでは何もしない（またはリスト表示用に別の要素を使う）
-          // document.getElementById('book-id').value = scannedBookIds.join(', ');
-          const listElement = document.getElementById('book-titles-list');
-          listElement.innerHTML = ''; // 一旦クリア
-          scannedBookTitles.forEach((title, index) => {
-              const p = document.createElement('p');
-              // 削除ボタンを追加する場合
-              // p.innerHTML = `- ${title} <button onclick="removeBook(${index})" style="font-size:0.8em; padding: 2px 5px; margin-left: 5px;">削除</button>`;
-              p.textContent = `- ${title} (ID: ${scannedBookIds[index]})`; // IDも表示
-              p.style.margin = '4px 0'; // リスト項目のマージン調整
-              listElement.appendChild(p);
+          const tableBody = document.getElementById('books-table-body');
+          tableBody.innerHTML = ''; // 一旦クリア
+          
+          if (scannedBooks.length === 0) {
+              // 書籍がない場合はテーブルを非表示
+              document.getElementById('books-table').style.display = 'none';
+              return;
+          }
+          
+          // テーブルを表示
+          document.getElementById('books-table').style.display = 'table';
+          
+          // 各書籍の行を作成
+          scannedBooks.forEach((book, index) => {
+              const row = document.createElement('tr');
+              if (index % 2 === 1) {
+                  row.classList.add('even-row'); // 偶数行のスタイル用
+              }
+              
+              // チェックボックスセル
+              const checkboxCell = document.createElement('td');
+              checkboxCell.className = 'checkbox-cell';
+              const checkbox = document.createElement('input');
+              checkbox.type = 'checkbox';
+              checkbox.className = 'book-checkbox';
+              checkbox.checked = book.checked;
+              checkbox.dataset.index = index;
+              checkbox.addEventListener('change', function() {
+                  scannedBooks[index].checked = this.checked;
+                  updateLendingButtonState();
+              });
+              checkboxCell.appendChild(checkbox);
+              
+              // 書籍IDセル
+              const idCell = document.createElement('td');
+              idCell.textContent = book.id;
+              
+              // 書籍名セル
+              const titleCell = document.createElement('td');
+              titleCell.textContent = book.title;
+              
+              // 行に各セルを追加
+              row.appendChild(checkboxCell);
+              row.appendChild(idCell);
+              row.appendChild(titleCell);
+              
+              // テーブルに行を追加
+              tableBody.appendChild(row);
           });
       }
 
       // 貸出ボタンの有効/無効状態を更新する関数
       function updateLendingButtonState() {
           const lendingButton = document.getElementById('lending-button');
-          // 利用者IDが確定し、かつ書籍が1冊以上リストにあれば有効化
-          if (currentUserId && scannedBookIds.length > 0) {
+          // 利用者IDが確定し、かつチェックされた書籍が1冊以上あれば有効化
+          const hasCheckedBooks = scannedBooks.some(book => book.checked);
+          if (currentUserId && hasCheckedBooks) {
               lendingButton.disabled = false;
           } else {
               lendingButton.disabled = true;
@@ -609,12 +752,12 @@
 
       // 貸出状態をリセットする関数
       function resetLendingState(resetUser = true) { // 利用者情報もリセットするかどうか
-          scannedBookIds = [];
-          scannedBookTitles = [];
+          scannedBooks = [];
           document.getElementById('book-id').value = '';
           document.getElementById('book-id').readOnly = true; // ReadOnlyに戻す
           document.getElementById('book-id').placeholder = "利用者ID確定後にスキャンしてください";
-          document.getElementById('book-titles-list').innerHTML = '';
+          document.getElementById('books-table-body').innerHTML = '';
+          document.getElementById('books-table').style.display = 'none';
           disableBookSection(true); // 書籍セクションを無効化
           if(resetUser){
               currentUserId = null;
@@ -628,7 +771,12 @@
 
       // 一括貸出処理 (GAS側を呼び出す)
       function submitForm() {
-          if (!currentUserId || scannedBookIds.length === 0) {
+          // チェックされた書籍IDのみを抽出
+          const checkedBookIds = scannedBooks
+              .filter(book => book.checked)
+              .map(book => book.id);
+              
+          if (!currentUserId || checkedBookIds.length === 0) {
               setMessage("利用者IDと貸し出す書籍を確認してください。");
               return;
           }
@@ -639,17 +787,26 @@
           const bulkData = {
               userId: currentUserId,
               userName: currentUserName,
-              bookIds: scannedBookIds // 書籍IDの配列を渡す
+              bookIds: checkedBookIds // チェックされた書籍IDの配列を渡す
           };
 
           google.script.run
               .withSuccessHandler(response => {
-                  setMessage(response); // サーバーからのメッセージを表示
-                  // 成功したら状態をリセット
+                  // 成功したら状態をリセットして次の入力に備える
                   if (response && typeof response === 'string' && response.includes("成功")) {
+                     // 成功メッセージを表示
+                     setMessage(response); // サーバーからのメッセージを表示
+                     
+                     // 完全に初期化して次の入力に備える
                      resetLendingState(true); // 利用者情報も含めてリセット
+                     
+                     // フォーカスを利用者ID入力欄に移動
+                     setTimeout(() => {
+                         document.getElementById('user-id').focus();
+                     }, 500);
                   } else {
-                      // 失敗した場合でもボタンは有効に戻す
+                      // 失敗した場合はメッセージを表示してボタンを有効に戻す
+                      setMessage(response || "貸出処理に失敗しました。");
                       document.getElementById('lending-button').disabled = false;
                   }
               })
