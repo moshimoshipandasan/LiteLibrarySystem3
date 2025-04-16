@@ -489,17 +489,58 @@
       }
 
       function stopScanner(targetElementId) {
-         if (Quagga.initialized) {
-            Quagga.stop();
+         if (typeof Quagga !== 'undefined') {
+            // 初期化されているかどうかに関わらず、すべてのイベントリスナーを解除
+            try {
+                Quagga.offDetected();  // すべての検出リスナーを解除
+                Quagga.offProcessed(); // すべての処理リスナーを解除
+                
+                if (Quagga.initialized) {
+                    Quagga.stop();
+                    console.log("Quagga スキャナー停止");
+                    // 初期化状態をリセット
+                    Quagga.initialized = false;
+                }
+            } catch (e) {
+                console.error("Quaggaリスナー解除中にエラー:", e);
+            }
+            
+            // カメラストリームを明示的に停止
             const viewport = document.getElementById(targetElementId);
             if (viewport) {
-              const canvas = viewport.querySelector('canvas');
-              if (canvas) viewport.removeChild(canvas);
-              const video = viewport.querySelector('video');
-              if (video) viewport.removeChild(video);
+                const canvas = viewport.querySelector('canvas');
+                if (canvas) viewport.removeChild(canvas);
+                
+                const video = viewport.querySelector('video');
+                if (video) {
+                    // ビデオ要素のストリームを取得して停止
+                    try {
+                        const stream = video.srcObject;
+                        if (stream) {
+                            const tracks = stream.getTracks();
+                            tracks.forEach(track => {
+                                track.stop(); // 各トラック（カメラなど）を明示的に停止
+                                console.log("カメラトラック停止:", track.kind);
+                            });
+                            video.srcObject = null; // ストリームの参照を解除
+                        }
+                    } catch (e) {
+                        console.error("カメラストリーム停止中にエラー:", e);
+                    }
+                    
+                    viewport.removeChild(video);
+                }
+                
+                // スキャンガイドとメッセージを削除
+                const existingGuide = viewport.querySelector('.scan-guide');
+                if (existingGuide) viewport.removeChild(existingGuide);
+                const existingMessage = viewport.querySelector('.scan-message');
+                if (existingMessage) viewport.removeChild(existingMessage);
             }
-            console.log("スキャナー停止");
+         } else {
+            console.log("Quagga is not defined.");
          }
+         console.log("スキャナー停止処理完了");
       }
 
       // デバッグログ関連の関数を削除し、空の関数に置き換え

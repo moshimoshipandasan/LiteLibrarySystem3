@@ -107,6 +107,22 @@
           cursor: not-allowed;
       }
       
+      /* キャンセルボタン */
+      .cancel-button {
+          background-color: #dc3545; /* 赤色系 */
+          margin-top: 15px;
+          padding: 20px 25px;
+          font-size: 1.4em;
+      }
+      .cancel-button:hover {
+          background-color: #c82333;
+      }
+      
+      /* ボタングループ */
+      .button-group {
+          margin-top: 20px;
+      }
+      
       /* チェックボックス */
       .book-checkbox {
           width: 28px;
@@ -321,7 +337,10 @@
       <div id="scanned-books" style="display: none;">
         <h2>返却対象書籍</h2>
         <div id="books-container"></div>
-        <button id="bulk-return-button" onclick="submitReturn()" disabled>選択した本をまとめて返却</button>
+        <div class="button-group">
+          <button id="bulk-return-button" onclick="submitReturn()" disabled>選択した本をまとめて返却</button>
+          <button id="cancel-button" onclick="cancelReturn()" class="cancel-button">キャンセル</button>
+        </div>
       </div>
       
       <p id="message"></p>
@@ -509,227 +528,28 @@
       }
 
       function stopScanner(targetElementId) {
-         if (typeof Quagga !== 'undefined' && Quagga.initialized) {
-            Quagga.offDetected(null);
-            Quagga.offProcessed(null);
-            Quagga.stop();
+         if (typeof Quagga !== 'undefined') {
+            // 初期化されているかどうかに関わらず、すべてのイベントリスナーを解除
+            try {
+                Quagga.offDetected();  // すべての検出リスナーを解除
+                Quagga.offProcessed(); // すべての処理リスナーを解除
+                
+                if (Quagga.initialized) {
+                    Quagga.stop();
+                    console.log("Quagga スキャナー停止");
+                    // 初期化状態をリセット
+                    Quagga.initialized = false;
+                }
+            } catch (e) {
+                console.error("Quaggaリスナー解除中にエラー:", e);
+            }
+            
+            // カメラストリームを明示的に停止
             const viewport = document.getElementById(targetElementId);
             if (viewport) {
-              const canvas = viewport.querySelector('canvas');
-              if (canvas) viewport.removeChild(canvas);
-              const video = viewport.querySelector('video');
-              if (video) viewport.removeChild(video);
-            }
-         }
-      }
-
-      // --- データ処理関数 ---
-
-      // スキャンまたは手入力された書籍IDをリストに追加する関数
-      function addBookIdToList(bookId) {
-          if (!bookId) return;
-          const trimmedId = bookId.trim();
-          if (!trimmedId) return;
-
-          // 重複チェック
-          if (!scannedBookIds.includes(trimmedId)) {
-              // 書籍情報を取得
-              setMessage(`書籍 [${trimmedId}] の情報を検索中...`);
-              google.script.run
-                  .withSuccessHandler(bookDetails => {
-                      if (bookDetails && bookDetails.title) {
-                          scannedBookIds.push(trimmedId);
-                          scannedBookTitles.push(bookDetails.title);
-                          updateBookDisplay();
-                          setMessage(`書籍「${bookDetails.title}」を追加しました。`);
-                          document.getElementById('scanned-books').style.display = 'block';
-                      } else {
-                          setMessage(`書籍ID [${trimmedId}] の情報が見つかりませんでした。`);
-                      }
-                      clearBookIdInput(); // 処理後に入力欄をクリア
-                      updateReturnButtonState(); // 返却ボタンの状態更新
-                  })
-                  .withFailureHandler(error => {
-                      setMessage(`書籍情報の取得エラー (ID: ${trimmedId}): ${error.message}`);
-                      console.error("書籍情報取得エラー:", error);
-                      clearBookIdInput();
-                  })
-                  .getBookDetails(trimmedId); // getBookDetailsを呼び出す
-          } else {
-              setMessage(`書籍ID [${trimmedId}] は既に追加されています。`);
-              clearBookIdInput();
-          }
-      }
-
-      // 書籍ID入力欄をクリアする
-      function clearBookIdInput() {
-          document.getElementById('book-id').value = '';
-      }
-
-      // 書籍リスト表示を更新する関数
-      function updateBookDisplay() {
-          const container = document.getElementById('books-container');
-          
-          // テーブルを作成
-          let html = `
-            <table>
-              <thead>
-                <tr>
-                  <th><input type="checkbox" id="select-all-checkbox" onclick="toggleAllCheckboxes()"></th>
-                  <th>書籍ID</th>
-                  <th>書籍名</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-          
-          // 書籍ごとに行を追加
-          scannedBookIds.forEach((bookId, index) => {
-              html += `
-                <tr>
-                  <td><input type="checkbox" class="book-checkbox" data-book-id="${bookId}" onchange="updateSelectedBooks()"></td>
-                  <td>${bookId}</td>
-                  <td>${scannedBookTitles[index] || 'N/A'}</td>
-                </tr>
-              `;
-          });
-          
-          html += `
-              </tbody>
-            </table>
-          `;
-          
-          container.innerHTML = html;
-          updateSelectedBooks(); // 選択状態を更新
-      }
-
-      // 全てのチェックボックスの選択/解除を切り替える関数
-      function toggleAllCheckboxes() {
-          const selectAllCheckbox = document.getElementById('select-all-checkbox');
-          const checkboxes = document.querySelectorAll('.book-checkbox');
-          
-          checkboxes.forEach(checkbox => {
-              checkbox.checked = selectAllCheckbox.checked;
-          });
-          
-          updateSelectedBooks();
-      }
-      
-      // 選択された書籍IDのリストを更新する関数
-      function updateSelectedBooks() {
-          selectedBookIds = [];
-          const checkboxes = document.querySelectorAll('.book-checkbox:checked');
-          
-          checkboxes.forEach(checkbox => {
-              const bookId = checkbox.getAttribute('data-book-id');
-              if (bookId) {
-                  selectedBookIds.push(bookId);
-              }
-          });
-          
-          console.log("選択された書籍ID:", selectedBookIds);
-          updateReturnButtonState();
-      }
-
-      // 返却ボタンの有効/無効状態を更新する関数
-      function updateReturnButtonState() {
-          const returnButton = document.getElementById('bulk-return-button');
-          if (returnButton) {
-              returnButton.disabled = selectedBookIds.length === 0;
-          }
-      }
-
-      // 状態をリセットする関数
-      function resetReturnState() {
-          scannedBookIds = [];
-          scannedBookTitles = [];
-          selectedBookIds = [];
-          document.getElementById('book-id').value = '';
-          document.getElementById('books-container').innerHTML = '';
-          document.getElementById('scanned-books').style.display = 'none';
-          updateReturnButtonState();
-      }
-
-      // 一括返却処理実行 (GAS側を呼び出す)
-      function submitReturn() {
-          if (selectedBookIds.length === 0) {
-              setMessage("返却する書籍が選択されていません。");
-              return;
-          }
-
-          setMessage(`選択された ${selectedBookIds.length} 冊の本を返却処理中...`);
-          document.getElementById('bulk-return-button').disabled = true; // 処理中はボタン無効化
-
-          google.script.run
-              .withSuccessHandler(response => {
-                  // 成功したら状態をリセットして次の入力に備える
-                  if (response && response.message && response.message.includes("成功")) {
-                     // 成功メッセージを表示
-                     setMessage(response.message || "返却処理が完了しました。");
-                     
-                     // 完全に初期化して次の入力に備える
-                     resetReturnState();
-                     
-                     // フォーカスを書籍ID入力欄に移動
-                     setTimeout(() => {
-                         document.getElementById('book-id').focus();
-                     }, 500);
-                  } else {
-                      // 失敗した場合はメッセージを表示してボタンを有効に戻す
-                      setMessage(response.message || "処理が完了しましたが、メッセージがありません。");
-                      document.getElementById('bulk-return-button').disabled = false;
-                  }
-                  // サーバーからのログは無視
-              })
-              .withFailureHandler(error => {
-                  setMessage(`一括返却処理失敗: ${error.message}`);
-                  console.error("一括返却エラー:", error);
-                  document.getElementById('bulk-return-button').disabled = false; // エラー時もボタン有効化
-              })
-              .processBulkReturn(selectedBookIds); // 新しいサーバー関数を呼び出す
-      }
-
-      // --- ユーティリティ関数 ---
-      // ビープ音を再生する関数
-      function playBeepSound() {
-        try {
-          // 音量設定
-          beepSound.volume = 1.0; // 音量を最大に設定
-          // 再生位置を先頭に戻す（連続で鳴らせるように）
-          beepSound.currentTime = 0;
-          
-          // 音を再生（複数回試行）
-          const playPromise = beepSound.play();
-          
-          if (playPromise !== undefined) {
-            playPromise.then(() => {
-              // 再生成功
-              console.log("ビープ音再生成功");
-            }).catch(e => {
-              console.error("ビープ音の再生に失敗:", e);
-              // 失敗した場合は再試行
-              setTimeout(() => {
-                beepSound.play().catch(e2 => console.error("ビープ音の再生再試行も失敗:", e2));
-              }, 100);
-            });
-          }
-        } catch (e) {
-          console.error("ビープ音の再生中にエラーが発生:", e);
-          // エラー発生時も再試行
-          setTimeout(() => {
-            try {
-              beepSound.play();
-            } catch (e2) {
-              console.error("ビープ音の再生再試行も例外発生:", e2);
-            }
-          }, 100);
-        }
-      }
-      
-      function setMessage(msg) {
-        document.getElementById('message').innerText = msg;
-      }
-
-    </script>
-  </body>
-</html>
+                const canvas = viewport.querySelector('canvas');
+                if (canvas) viewport.removeChild(canvas);
+                
+                const video = viewport.querySelector('video');
+                if (video) {
+                    // ビデオ要素のストリ

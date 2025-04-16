@@ -107,6 +107,22 @@
       button[onclick="submitForm()"]:hover {
           background-color: #218838;
       }
+      
+      /* キャンセルボタン */
+      .cancel-button {
+          background-color: #dc3545; /* 赤色系 */
+          margin-top: 15px;
+          padding: 20px 25px;
+          font-size: 1.4em;
+      }
+      .cancel-button:hover {
+          background-color: #c82333;
+      }
+      
+      /* ボタングループ */
+      .button-group {
+          margin-top: 20px;
+      }
 
 
       /* --- Scanner Viewport --- */
@@ -396,7 +412,10 @@
           </div>
       </fieldset>
 
-      <button id="lending-button" onclick="submitForm()" disabled>貸出登録</button> <!-- 初期は無効 -->
+      <div class="button-group">
+        <button id="lending-button" onclick="submitForm()" disabled>貸出登録</button> <!-- 初期は無効 -->
+        <button id="cancel-button" onclick="cancelLending()" class="cancel-button">キャンセル</button>
+      </div>
       <p id="message"></p>
 
     </div>
@@ -482,8 +501,8 @@
           stopScanner(targetElementId);
           targetViewport.style.display = 'none';
           currentScannerTarget = null;
-           if (targetElementId === 'interactive') bookIdScanning = false;
-           else userScanning = false;
+          if (targetElementId === 'interactive') bookIdScanning = false;
+          else userScanning = false;
         }
       }
 
@@ -632,20 +651,56 @@
 
       // スキャナーを停止する関数
       function stopScanner(targetElementId) {
-        if (typeof Quagga !== 'undefined' && Quagga.initialized) {
-            Quagga.offDetected(null);
-            Quagga.offProcessed(null);
-            Quagga.stop();
-            console.log("Quagga スキャナー停止 & リスナー解除");
+        if (typeof Quagga !== 'undefined') {
+            // 初期化されているかどうかに関わらず、すべてのイベントリスナーを解除
+            try {
+                Quagga.offDetected();  // すべての検出リスナーを解除
+                Quagga.offProcessed(); // すべての処理リスナーを解除
+                
+                if (Quagga.initialized) {
+                    Quagga.stop();
+                    console.log("Quagga スキャナー停止");
+                    // 初期化状態をリセット
+                    Quagga.initialized = false;
+                }
+            } catch (e) {
+                console.error("Quaggaリスナー解除中にエラー:", e);
+            }
+            
+            // カメラストリームを明示的に停止
             const viewport = document.getElementById(targetElementId);
             if (viewport) {
-              const canvas = viewport.querySelector('canvas');
-              if (canvas) viewport.removeChild(canvas);
-              const video = viewport.querySelector('video');
-              if (video) viewport.removeChild(video);
+                const canvas = viewport.querySelector('canvas');
+                if (canvas) viewport.removeChild(canvas);
+                
+                const video = viewport.querySelector('video');
+                if (video) {
+                    // ビデオ要素のストリームを取得して停止
+                    try {
+                        const stream = video.srcObject;
+                        if (stream) {
+                            const tracks = stream.getTracks();
+                            tracks.forEach(track => {
+                                track.stop(); // 各トラック（カメラなど）を明示的に停止
+                                console.log("カメラトラック停止:", track.kind);
+                            });
+                            video.srcObject = null; // ストリームの参照を解除
+                        }
+                    } catch (e) {
+                        console.error("カメラストリーム停止中にエラー:", e);
+                    }
+                    
+                    viewport.removeChild(video);
+                }
+                
+                // スキャンガイドとメッセージを削除
+                const existingGuide = viewport.querySelector('.scan-guide');
+                if (existingGuide) viewport.removeChild(existingGuide);
+                const existingMessage = viewport.querySelector('.scan-message');
+                if (existingMessage) viewport.removeChild(existingMessage);
             }
         } else {
-             console.log("Quagga not initialized or already stopped.");
+            console.log("Quagga is not defined.");
         }
         console.log("スキャナー停止処理完了:", targetElementId);
       }
@@ -897,6 +952,29 @@
 
       function setMessage(msg) {
         document.getElementById('message').innerText = msg;
+      }
+      
+      // キャンセルボタンの処理
+      function cancelLending() {
+        // アクティブなスキャナーがあれば停止
+        if (currentScannerTarget) {
+          stopScanner(currentScannerTarget);
+          document.getElementById(currentScannerTarget).style.display = 'none';
+          currentScannerTarget = null;
+          bookIdScanning = false;
+          userScanning = false;
+        }
+        
+        // 全ての状態をリセット
+        resetLendingState(true);
+        
+        // メッセージを表示
+        setMessage("貸出処理をキャンセルしました。");
+        
+        // フォーカスを利用者ID入力欄に移動
+        setTimeout(() => {
+          document.getElementById('user-id').focus();
+        }, 500);
       }
 
     </script>
