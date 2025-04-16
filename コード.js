@@ -534,85 +534,6 @@ function processReturnForm(bookId) { // Changed parameter name
 }
 
 
-// --- 以下はテスト用の関数（任意） ---
-
-/**
- * getBookDetails関数のテスト用関数
- * ※事前に"書籍DB"シートにテスト用データを入れておく必要があります
- */
-function testGetBookDetails() {
-  const testBookId = "BK00001"; // "書籍DB"シートに存在するID
-  const bookDetails = getBookDetails(testBookId);
-  if (bookDetails) {
-    Logger.log(`テスト成功: ${bookDetails.title}`);
-  } else {
-    Logger.log("テスト失敗: 書籍情報が取得できませんでした。");
-  }
-   const testBookIdNotFound = "BK99999"; // 存在しないID
-   const bookDetailsNotFound = getBookDetails(testBookIdNotFound);
-   if (!bookDetailsNotFound) {
-       Logger.log("テスト成功: 存在しない書籍IDでnullが返されました。");
-   } else {
-       Logger.log("テスト失敗: 存在しない書籍IDでデータが返されました。");
-   }
-}
-
-/**
- * getUserInfo関数のテスト用関数
- * ※事前に"利用者DB"シートにテスト用データを入れておく必要があります
- */
-function testGetUserInfo() {
-  const testUserId = "test001"; // "利用者DB"シートに存在するID
-  const userInfo = getUserInfo(testUserId);
-   if (userInfo) {
-    Logger.log(`テスト成功: ${userInfo.name}`);
-  } else {
-    Logger.log("テスト失敗: 利用者情報が取得できませんでした。");
-  }
-
-  const testUserIdNotFound = "notfound999"; // 存在しないID
-  const userInfoNotFound = getUserInfo(testUserIdNotFound);
-   if (!userInfoNotFound) {
-       Logger.log("テスト成功: 存在しない利用者IDでnullが返されました。");
-   } else {
-       Logger.log("テスト失敗: 存在しない利用者IDでデータが返されました。");
-   }
-}
-
-/**
- * processLendingForm関数のテスト用関数
- * ※事前に"貸出記録"シートと"書籍DB"シートを作成しておく必要があります
- */
-function testProcessLendingForm() {
-  // "書籍DB"に存在する書籍IDと、"利用者DB"に存在する利用者IDを使う
-  const testData = {
-    bookId: "BK00002", // テスト用の書籍ID
-    bookTitle: "テスト書籍タイトル（自動取得されるはず）", // processLendingForm内では使わないが、便宜上
-    userId: "test002", // テスト用の利用者ID
-    userName: "テストユーザー名（自動取得されるはず）" // processLendingForm内では使わないが、便宜上
-  };
-  // 実際には processLendingForm は bookTitle と userName を引数で受け取るが、
-  // 本来は getBookDetails と getUserInfo で取得した値を使うべき。
-  // テストをより正確にするなら、それらの関数を呼び出す処理もここに入れる。
-  // ここでは簡略化のため、formDataに必要なキーだけ渡す。
-  const bookDetails = getBookDetails(testData.bookId);
-  const userInfo = getUserInfo(testData.userId);
-
-  if (bookDetails && userInfo) {
-      const formDataForTest = {
-          bookId: testData.bookId,
-          bookTitle: bookDetails.title,
-          userId: testData.userId,
-          userName: userInfo.name
-      };
-      const result = processLendingForm(formDataForTest);
-      Logger.log(result);
-  } else {
-      Logger.log("テスト失敗: 書籍情報または利用者情報が見つかりませんでした。");
-      if (!bookDetails) Logger.log(`書籍ID ${testData.bookId} が書籍DBに存在しません。`);
-      if (!userInfo) Logger.log(`利用者ID ${testData.userId} が利用者DBに存在しません。`);
-  }
-}
 
 /**
  * 指定された書籍IDの貸出記録を検索する関数
@@ -1090,11 +1011,6 @@ function onOpen() {
       .addItem('延滞リマインダー送信', 'sendOverdueReminders')
       .addItem('貸出状況レポート作成', 'generateLendingReport')
       .addItem('返却済データのバックアップ', 'showBackupDialog')
-      .addSeparator()
-      .addSubMenu(SpreadsheetApp.getUi().createMenu('テスト機能')
-          .addItem('書籍情報取得テスト', 'testGetBookDetails')
-          .addItem('利用者情報取得テスト', 'testGetUserInfo')
-          .addItem('貸出処理テスト', 'testProcessLendingForm'))
       .addToUi();
 }
 
