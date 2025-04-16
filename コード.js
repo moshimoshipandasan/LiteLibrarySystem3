@@ -1089,12 +1089,146 @@ function onOpen() {
       .addItem('バーコード生成', 'generateBarcodesForSheet')
       .addItem('延滞リマインダー送信', 'sendOverdueReminders')
       .addItem('貸出状況レポート作成', 'generateLendingReport')
+      .addItem('返却済データのバックアップ', 'showBackupDialog')
       .addSeparator()
       .addSubMenu(SpreadsheetApp.getUi().createMenu('テスト機能')
           .addItem('書籍情報取得テスト', 'testGetBookDetails')
           .addItem('利用者情報取得テスト', 'testGetUserInfo')
           .addItem('貸出処理テスト', 'testProcessLendingForm'))
       .addToUi();
+}
+
+/**
+ * 返却済データのバックアップ用ダイアログを表示する関数
+ */
+function showBackupDialog() {
+  const ui = SpreadsheetApp.getUi();
+  const result = ui.prompt(
+    '返却済データのバックアップ',
+    'バックアップ先のスプレッドシートIDを入力してください：\n（例: 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms）',
+    ui.ButtonSet.OK_CANCEL
+  );
+
+  // OKボタンがクリックされた場合
+  if (result.getSelectedButton() == ui.Button.OK) {
+    const targetSpreadsheetId = result.getResponseText().trim();
+    
+    // 入力値の検証
+    if (!targetSpreadsheetId) {
+      ui.alert('エラー', 'スプレッドシートIDが入力されていません。', ui.ButtonSet.OK);
+      return;
+    }
+    
+    try {
+      // バックアップ処理を実行
+      const result = backupReturnedData(targetSpreadsheetId);
+      
+      // 結果をアラートで表示
+      if (result.success) {
+        ui.alert('成功', `${result.count}件の返却済データをバックアップし、元のシートから削除しました。`, ui.ButtonSet.OK);
+      } else {
+        ui.alert('エラー', `バックアップ処理に失敗しました: ${result.message}`, ui.ButtonSet.OK);
+      }
+    } catch (error) {
+      ui.alert('エラー', `予期せぬエラーが発生しました: ${error.message}`, ui.ButtonSet.OK);
+    }
+  }
+}
+
+/**
+ * 返却済データをバックアップし、元のシートから削除する関数
+ * @param {string} targetSpreadsheetId - バックアップ先のスプレッドシートID
+ * @return {object} 処理結果 {success: boolean, count: number, message: string}
+ */
+function backupReturnedData(targetSpreadsheetId) {
+  try {
+    // 現在のスプレッドシート（元データ）を取得
+    const sourceSpreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    const lendingSheet = sourceSpreadsheet.getSheetByName("貸出記録");
+    
+    if (!lendingSheet) {
+      return { success: false, count: 0, message: "貸出記録シートが見つかりません。" };
+    }
+    
+    // バックアップ先のスプレッドシートを取得
+    let targetSpreadsheet;
+    try {
+      targetSpreadsheet = SpreadsheetApp.openById(targetSpreadsheetId);
+    } catch (e) {
+      return { success: false, count: 0, message: "指定されたスプレッドシートが見つかりません。IDを確認してください。" };
+    }
+    
+    // バックアップ先のシート1を取得（なければ作成）
+    let targetSheet = targetSpreadsheet.getSheetByName("Sheet1");
+    if (!targetSheet) {
+      targetSheet = targetSpreadsheet.getSheets()[0]; // 最初のシートを取得
+      if (!targetSheet) {
+        return { success: false, count: 0, message: "バックアップ先にシートが見つかりません。" };
+      }
+    }
+    
+    // 元データの全行を取得
+    const data = lendingSheet.getDataRange().getValues();
+    if (data.length <= 1) { // ヘッダー行のみの場合
+      return { success: true, count: 0, message: "バックアップ対象のデータがありません。" };
+    }
+    
+    // ヘッダー行
+    const headers = data[0];
+    
+    // 返却状況の列インデックスを特定
+    const statusColIndex = headers.findIndex(header => header === "返却状況");
+    if (statusColIndex === -1) {
+      return { success: false, count: 0, message: "返却状況の列が見つかりません。" };
+    }
+    
+    // 返却済みデータを抽出
+    const returnedData = data.filter((row, index) => 
+      index > 0 && row[statusColIndex] === "返却済"
+    );
+    
+    if (returnedData.length === 0) {
+      return { success: true, count: 0, message: "バックアップ対象の返却済データがありません。" };
+    }
+    
+    // バックアップ先のシートにヘッダーがなければ追加
+    const targetData = targetSheet.getDataRange().getValues();
+    if (targetData.length === 0 || targetData[0].join() !== headers.join()) {
+      targetSheet.clearContents(); // 既存のデータをクリア
+      targetSheet.appendRow(headers); // ヘッダー行を追加
+    }
+    
+    // 返却済みデータをバックアップ先に追加
+    targetSheet.getRange(
+      targetSheet.getLastRow() + 1, 
+      1, 
+      returnedData.length, 
+      headers.length
+    ).setValues(returnedData);
+    
+    // 元シートから返却済みデータを削除（下から削除していく）
+    const rowsToDelete = [];
+    for (let i = data.length - 1; i > 0; i--) {
+      if (data[i][statusColIndex] === "返却済") {
+        rowsToDelete.push(i + 1); // シートの行番号は1から始まるため+1
+      }
+    }
+    
+    // 行を削除
+    rowsToDelete.forEach(rowNum => {
+      lendingSheet.deleteRow(rowNum);
+    });
+    
+    return { 
+      success: true, 
+      count: returnedData.length, 
+      message: `${returnedData.length}件の返却済データをバックアップしました。` 
+    };
+    
+  } catch (error) {
+    console.error("バックアップ処理中にエラーが発生しました:", error);
+    return { success: false, count: 0, message: error.message };
+  }
 }
 
 /**
