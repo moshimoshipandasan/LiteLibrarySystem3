@@ -270,6 +270,9 @@
         td:nth-of-type(1):before { content: "選択"; }
         td:nth-of-type(2):before { content: "書籍ID"; }
         td:nth-of-type(3):before { content: "書籍名"; }
+        td:nth-of-type(4):before { content: "利用者名"; }
+        td:nth-of-type(5):before { content: "貸出日時"; }
+        td:nth-of-type(6):before { content: "返却予定日"; }
       }
       
       @media (max-width: 600px) {
@@ -312,15 +315,17 @@
       <h1>図書返却</h1>
 
       <div class="form-group">
-        <label for="book-id">返却する書籍ID（連続スキャン可能）</label>
-        <button id="scan-book-id-button">書籍IDをスキャン</button><br>
+        <label for="book-id">検索する書籍ID</label>
+        <button id="scan-book-id-button">書籍IDをスキャン</button>
         <input type="text" id="book-id" name="bookId" placeholder="スキャンするか手入力してください" style="font-size: 1.4em; padding: 20px; margin-top: 10px;">
         <div id="interactive" class="viewport" style="display: none;"></div> <!-- 初期非表示 -->
       </div>
+
+      <button onclick="searchUnreturnedBooks()">検索</button>
       
-      <div id="scanned-books" style="display: none;">
-        <h2>返却対象書籍</h2>
-        <div id="books-container"></div>
+      <div id="rental-records" style="display: none;">
+        <h2>未返却書籍</h2>
+        <div id="records-container"></div>
         <button id="bulk-return-button" onclick="submitReturn()" disabled>選択した本をまとめて返却</button>
       </div>
       
@@ -356,10 +361,7 @@
         // 書籍ID手入力時のEnterキー処理
         document.getElementById('book-id').addEventListener('keypress', (event) => {
           if (event.key === 'Enter' && !isScanning) {
-            const bookId = document.getElementById('book-id').value.trim();
-            if (bookId) {
-              addBookIdToList(bookId);
-            }
+            searchUnreturnedBooks();
           }
         });
       }
@@ -498,12 +500,16 @@
           lastDetectedCode = code;
           lastDetectedTime = currentTime;
           
+          document.getElementById(inputFieldId).value = code;
+          setMessage(`コード「${code}」を読み取りました。`);
+          
           // ビープ音を再生
           playBeepSound();
           
-          addBookIdToList(code); // スキャンしたIDをリストに追加
-          setMessage(`書籍ID [${code}] を追加しました。`);
-          // 連続スキャンのため停止しない
+          stopScanner(targetElementId);
+          document.getElementById(targetElementId).style.display = 'none';
+          isScanning = false;
+          searchUnreturnedBooks(); // 書籍IDが読み取れたら自動的に検索
         });
       }
 
@@ -599,41 +605,105 @@
           document.getElementById('book-id').value = '';
       }
 
-      // 書籍リスト表示を更新する関数
-      function updateBookDisplay() {
-          const container = document.getElementById('books-container');
+      // 未返却の貸出記録を検索する関数
+      function searchUnreturnedBooks() {
+        const bookId = document.getElementById('book-id').value.trim();
+        if (!bookId) {
+          setMessage("書籍IDを入力またはスキャンしてください。");
+          return;
+        }
+
+        setMessage("貸出記録を検索中...");
+        document.getElementById('rental-records').style.display = 'none';
+        document.getElementById('records-container').innerHTML = '';
+        
+        google.script.run
+          .withSuccessHandler((result) => {
+            console.log("検索結果:", result);
+            
+            // 未返却の記録のみをフィルタリング
+            let unreturnedRecords = [];
+            if (result && result.records && Array.isArray(result.records)) {
+              unreturnedRecords = result.records.filter(record => record.status === "未返却");
+            }
+
+            if (unreturnedRecords.length > 0) {
+              displayUnreturnedBooks(unreturnedRecords);
+              setMessage(`書籍ID [${bookId}] の未返却記録が見つかりました。`);
+              document.getElementById('rental-records').style.display = 'block';
+            } else {
+              setMessage(`書籍ID [${bookId}] の未返却記録が見つかりませんでした。`);
+              document.getElementById('rental-records').style.display = 'block';
+              document.getElementById('records-container').innerHTML = '<p class="no-records">該当する未返却の貸出記録はありません。</p>';
+            }
+          })
+          .withFailureHandler(function(error) {
+            setMessage(`検索エラーが発生しました: ${error.message}`);
+            console.error("サーバー呼び出しエラー:", error);
+            document.getElementById('rental-records').style.display = 'block';
+            document.getElementById('records-container').innerHTML = '<p class="no-records">検索中にエラーが発生しました。</p>';
+          })
+          .findRentalRecords(bookId);
+      }
+
+      // 未返却書籍を表示する関数
+      function displayUnreturnedBooks(records) {
+        console.log("表示する未返却記録:", records);
+        
+        const container = document.getElementById('records-container');
+        
+        // テーブルを作成
+        let html = `
+          <table>
+            <thead>
+              <tr>
+                <th><input type="checkbox" id="select-all-checkbox" onclick="toggleAllCheckboxes()"></th>
+                <th>書籍ID</th>
+                <th>書籍名</th>
+                <th>利用者名</th>
+                <th>貸出日時</th>
+                <th>返却予定日</th>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+        
+        // レコードごとに行を追加
+        records.forEach(record => {
+          // 日付文字列をフォーマット
+          let lendingDateStr = 'N/A';
+          if (record.lendingDate && typeof record.lendingDate === 'string') {
+            try {
+              lendingDateStr = new Date(record.lendingDate).toLocaleString();
+            } catch (e) { console.error("貸出日時のパースエラー:", e); }
+          }
           
-          // テーブルを作成
-          let html = `
-            <table>
-              <thead>
-                <tr>
-                  <th><input type="checkbox" id="select-all-checkbox" onclick="toggleAllCheckboxes()"></th>
-                  <th>書籍ID</th>
-                  <th>書籍名</th>
-                </tr>
-              </thead>
-              <tbody>
-          `;
-          
-          // 書籍ごとに行を追加
-          scannedBookIds.forEach((bookId, index) => {
-              html += `
-                <tr>
-                  <td><input type="checkbox" class="book-checkbox" data-book-id="${bookId}" onchange="updateSelectedBooks()"></td>
-                  <td>${bookId}</td>
-                  <td>${scannedBookTitles[index] || 'N/A'}</td>
-                </tr>
-              `;
-          });
+          let dueDateStr = 'N/A';
+          if (record.dueDate && typeof record.dueDate === 'string') {
+            try {
+              dueDateStr = new Date(record.dueDate).toLocaleDateString();
+            } catch (e) { console.error("返却予定日のパースエラー:", e); }
+          }
           
           html += `
-              </tbody>
-            </table>
+            <tr>
+              <td><input type="checkbox" class="book-checkbox" data-book-id="${record.bookId}" onchange="updateSelectedBooks()"></td>
+              <td>${record.bookId || 'N/A'}</td>
+              <td>${record.bookTitle || 'N/A'}</td>
+              <td>${record.userName || 'N/A'}<span class="user-id">ID: ${record.userId || 'N/A'}</span></td>
+              <td>${lendingDateStr}</td>
+              <td>${dueDateStr}</td>
+            </tr>
           `;
-          
-          container.innerHTML = html;
-          updateSelectedBooks(); // 選択状態を更新
+        });
+        
+        html += `
+            </tbody>
+          </table>
+        `;
+        
+        container.innerHTML = html;
+        updateSelectedBooks(); // 選択状態を更新
       }
 
       // 全てのチェックボックスの選択/解除を切り替える関数
@@ -678,8 +748,8 @@
           scannedBookTitles = [];
           selectedBookIds = [];
           document.getElementById('book-id').value = '';
-          document.getElementById('books-container').innerHTML = '';
-          document.getElementById('scanned-books').style.display = 'none';
+          document.getElementById('records-container').innerHTML = '';
+          document.getElementById('rental-records').style.display = 'none';
           updateReturnButtonState();
       }
 
