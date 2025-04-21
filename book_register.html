@@ -7,103 +7,306 @@
   <title>書籍登録システム</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js" integrity="sha512-bCsBoYoW6zE0aja5xcIyoCDPfT27+cGr7AOCqelttLVRGay6EKGQbR6wm6SUcUGOMGXJpj+jrIpMS6i80+kZPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap');
+    
+    /* --- General Styles --- */
     body, html {
       margin: 0;
       padding: 0;
-      font-family: Arial, sans-serif;
+      font-family: 'Noto Sans JP', sans-serif;
       height: 100%;
+      background-color: #f4f4f4;
+      color: #333;
+      line-height: 1.7;
+      font-size: 1.4rem;
     }
     .container {
-      max-width: 800px;
-      margin: 0 auto;
-      padding: 20px;
+      margin: 0;
+      padding: 15px;
+      background-color: #fff;
+      width: 100%;
+      min-height: 100vh;
+      box-sizing: border-box;
     }
     h1 {
       text-align: center;
-      color: #333;
+      color: #0056b3;
+      margin-top: 0;
+      margin-bottom: 30px;
+      border-bottom: 2px solid #eee;
+      padding-bottom: 20px;
+      font-size: 2em;
     }
+    
+    /* --- Scanner Viewport --- */
     #camera-view {
-      width: 100%;
-      height: 300px;
-      border: 1px solid #ccc;
-      margin-bottom: 20px;
       position: relative;
+      width: 100%;
+      max-width: 480px;
+      height: auto;
       overflow: hidden;
+      margin: 15px auto;
+      border: 2px solid #0056b3;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
+    #camera-view > canvas, #camera-view > video {
+      max-width: 100%;
+      width: 100%;
+      height: auto;
+    }
+    canvas.drawing, canvas.drawingBuffer {
+      position: absolute;
+      left: 0;
+      top: 0;
+    }
+    /* スキャンガイド */
+    .scan-guide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+    .scan-guide::before {
+      content: "";
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      height: 30%;
+      border: 2px dashed #dc3545;
+      border-radius: 4px;
+      box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.3);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 0.5; }
+      50% { opacity: 1; }
+      100% { opacity: 0.5; }
+    }
+    /* スキャン中のメッセージ */
+    .scan-message {
+      position: absolute;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: white;
+      background-color: rgba(0, 86, 179, 0.7);
+      padding: 5px;
+      font-weight: bold;
+      z-index: 11;
+    }
+    
+    /* --- Form Styles --- */
+    .form-group {
+      margin-bottom: 30px;
+    }
+    label {
+      display: block;
+      margin-bottom: 15px;
+      font-weight: 700;
+      color: #444;
+      font-size: 1.5em;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 20px;
+      border: 1px solid #aaa;
+      border-radius: 8px;
+      box-sizing: border-box;
+      font-size: 1.4em;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    input[readonly] {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+    }
+    
+    /* --- Button Styles --- */
     .button-container {
       display: flex;
       justify-content: center;
       margin-bottom: 20px;
+      flex-wrap: wrap;
     }
     button {
-      background-color: #4CAF50;
-      border: none;
+      background-color: #0056b3;
       color: white;
-      padding: 10px 20px;
-      text-align: center;
-      text-decoration: none;
-      display: inline-block;
-      font-size: 16px;
-      margin: 4px 2px;
+      padding: 22px 30px;
+      border: none;
+      border-radius: 8px;
       cursor: pointer;
-      border-radius: 4px;
+      font-size: 1.4em;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
+      margin-top: 15px;
+      font-family: 'Noto Sans JP', sans-serif;
+    }
+    button:hover {
+      background-color: #004494;
     }
     button:disabled {
       background-color: #cccccc;
+      color: #999999;
       cursor: not-allowed;
+      opacity: 0.7;
+      border: 1px solid #bbbbbb;
+      box-shadow: none;
     }
+    #start-button {
+      padding: 18px 25px;
+      background-color: #28a745; /* 緑色 - アクティブ状態 */
+      margin-right: 10px;
+      font-size: 1.3em;
+      font-weight: 400;
+    }
+    #start-button:hover {
+      background-color: #218838;
+    }
+    #start-button:disabled {
+      background-color: #cccccc;
+    }
+    #stop-button {
+      padding: 18px 25px;
+      background-color: #dc3545; /* 赤色 - 停止ボタン */
+      margin-right: 10px;
+      font-size: 1.3em;
+      font-weight: 400;
+    }
+    #stop-button:hover {
+      background-color: #c82333;
+    }
+    #stop-button:disabled {
+      background-color: #cccccc;
+    }
+    #search-button {
+      padding: 18px 25px;
+      background-color: #0056b3; /* 青色 - 検索ボタン */
+      margin-left: 10px;
+      font-size: 1.3em;
+      font-weight: 400;
+    }
+    #search-button:hover {
+      background-color: #004494;
+    }
+    #search-button:disabled {
+      background-color: #cccccc;
+    }
+    #register-button {
+      display: block;
+      width: 100%;
+      margin-top: 25px;
+      background-color: #28a745;
+      padding: 25px 30px;
+      font-size: 1.5em;
+    }
+    #register-button:hover {
+      background-color: #218838;
+    }
+    
+    /* --- Book Info Styles --- */
     .book-info {
-      margin-top: 20px;
-      padding: 15px;
+      margin-top: 30px;
+      padding: 20px;
       border: 1px solid #ddd;
-      border-radius: 4px;
+      border-radius: 8px;
       background-color: #f9f9f9;
     }
     .book-info h2 {
       margin-top: 0;
       color: #333;
-    }
-    .book-info p {
-      margin: 5px 0;
+      font-size: 1.8em;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
     }
     .book-info img {
-      max-width: 100px;
+      max-width: 120px;
       float: right;
       margin-left: 15px;
       border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+    
+    /* --- Message Area --- */
+    .status-message {
+      margin-top: 30px;
+      font-weight: 700;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 1.4em;
+    }
+    .status-message:not(:empty) {
+      display: block;
+      background-color: #e2f3ff;
+      border: 1px solid #b8dffc;
+      color: #0056b3;
+    }
+    .success {
+      background-color: #d4edda !important;
+      color: #155724 !important;
+      border: 1px solid #c3e6cb !important;
+    }
+    .error {
+      background-color: #f8d7da !important;
+      color: #721c24 !important;
+      border: 1px solid #f5c6cb !important;
+    }
+    
+    /* --- Utility Classes --- */
     .hidden {
       display: none;
     }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-    }
-    input[type="text"] {
-      width: 100%;
-      padding: 8px;
-      box-sizing: border-box;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-    }
-    .status-message {
-      margin-top: 10px;
-      padding: 10px;
-      border-radius: 4px;
-    }
-    .success {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    .error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
+    
+    /* --- Responsive Design --- */
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px;
+      }
+      h1 {
+        font-size: 2rem;
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      .form-group {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
+      .status-message {
+        margin-left: 10px;
+        margin-right: 10px;
+        font-size: 1.3em;
+      }
+      button {
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 15px;
+        padding: 20px 25px;
+        font-size: 1.4em;
+      }
+      #start-button, #stop-button, #search-button {
+        margin-bottom: 10px;
+        padding: 20px 25px;
+      }
+      button:last-of-type {
+        margin-bottom: 0;
+      }
+      .button-container {
+        flex-direction: column;
+      }
+      #register-button {
+        padding: 25px 30px;
+        font-size: 1.5em;
+        margin-top: 25px;
+      }
     }
   </style>
 </head>
@@ -159,6 +362,8 @@
     // グローバル変数
     let quaggaInitialized = false;
     let lastDetectedCode = null;
+    // ビープ音用のAudioオブジェクト
+    const beepSound = new Audio("data:audio/wav;base64,//uQRAAAAWMSLwUIYAAsYkXgoQwAEaYLWfkWgAI0wWs/ItAAAGDgYtAgAyN+QWaAAihwMWm4G8QQRDiMcCBcH3Cc+CDv/7xA4Tvh9Rz/y8QADBwMWgQAZG/ILNAARQ4GLTcDeIIIhxGOBAuD7hOfBB3/94gcJ3w+o5/5eIAIAAAVwWgQAVQ2ORaIQwEMAJiDg95G4nQL7mQVWI6GwRcfsZAcsKkJvxgxEjzFUgfHoSQ9Qq7KNwqHwuB13MA4a1q/DmBrHgPcmjiGoh//EwC5nGPEmS4RcfkVKOhJf+WOgoxJclFz3kgn//dBA+ya1GhurNn8zb//9NNutNuhz31f////9vt///z+IdAEAAAK4LQIAKobHItEIYCGAExBwe8jcToF9zIKrEdDYIuP2MgOWFSE34wYiR5iqQPj0JIeoVdlG4VD4XA67mAcNa1fhzA1jwHuTRxDUQ//iYBczjHiTJcIuPyKlHQkv/LHQUYkuSi57yQT//uggfZNajQ3Vmz+Zt//+mm3Wm3Q576v////+32///5/EOgAAADVghQAAAAA//uQZAUAB1WI0PZugAAAAAoQwAAAEk3nRd2qAAAAACiDgAAAAAAABCqEEQRLCgwpBGMlJkIz8jKhGvj4k6jzRnqasNKIeoh5gI7BJaC1A1AoNBjJgbyApVS4IDlZgDU5WUAxEKDNmmALHzZp0Fkz1FMTmGFl1FMEyodIavcCAUHDWrKAIA4aa2oCgILEBupZgHvAhEBcZ6joQBxS76AgccrFlczBvKLC0QI2cBoCFvfTDAo7eoOQInqDPBtvrDEZBNYN5xwNwxQRfw8ZQ5wQVLvO8OYU+mHvFLlDh05Mdg7BT6YrRPpCBznMB2r//xKJjyyOh+cImr2/4doscwD6neZjuZR4AgAABYAAAABy1xcdQtxYBYYZdifkUDgzzXaXn98Z0oi9ILU5mBjFANmRwlVJ3/6jYDAmxaiDG3/6xjQQCCKkRb/6kg/wW+kSJ5//rLobkLSiKmqP/0ikJuDaSaSf/6JiLYLEYnW/+kXg1WRVJL/9EmQ1YZIsv/6Qzwy5qk7/+tEU0nkls3/zIUMPKNX/6yZLf+kFgAfgGyLFAUwY//uQZAUABcd5UiNPVXAAAApAAAAAE0VZQKw9ISAAACgAAAAAVQIygIElVrFkBS+Jhi+EAuu+lKAkYUEIsmEAEoMeDmCETMvfSHTGkF5RWH7kz/ESHWPAq/kcCRhqBtMdokPdM7vil7RG98A2sc7zO6ZvTdM7pmOUAZTnJW+NXxqmd41dqJ6mLTXxrPpnV8DouEimPVuiRkITnEBKDATKJd9ZG/LZZPuQELRJXYmKl7Ds2nJBcXHbNsOg5PRk9J8UxLWGs5FhiGBUAg1xHYDaHR0cDovL3d3dy5yZXNvdXJjZXNwYWNrLmNvbS9ycGcvR2VuZXJhdG9yLw==");
     
     // DOMが読み込まれたら実行
     document.addEventListener('DOMContentLoaded', function() {
@@ -204,6 +409,18 @@
         }
       });
       
+      // ISBNフィールドでEnterキーを押したときの処理
+      isbnInput.addEventListener('keypress', function(event) {
+        if (event.key === 'Enter') {
+          const isbn = isbnInput.value.trim();
+          if (isbn) {
+            fetchBookInfo(isbn);
+          } else {
+            showStatusMessage('ISBNを入力してください', 'error');
+          }
+        }
+      });
+      
       // 登録ボタンのイベントリスナー
       registerButton.addEventListener('click', function() {
         registerBook();
@@ -213,60 +430,208 @@
       function initQuagga() {
         if (quaggaInitialized) return;
         
+        showStatusMessage("カメラを起動しています...", "");
+        
+        // 既存のリスナーを解除
+        if (typeof Quagga !== 'undefined') {
+          Quagga.offDetected(null);
+          Quagga.offProcessed(null);
+        }
+        
+        // スキャンガイドとメッセージを追加
+        const viewport = document.getElementById('camera-view');
+        
+        // 既存のガイドとメッセージを削除
+        const existingGuide = viewport.querySelector('.scan-guide');
+        if (existingGuide) viewport.removeChild(existingGuide);
+        const existingMessage = viewport.querySelector('.scan-message');
+        if (existingMessage) viewport.removeChild(existingMessage);
+        
+        // 新しいガイドとメッセージを追加
+        const scanGuide = document.createElement('div');
+        scanGuide.className = 'scan-guide';
+        viewport.appendChild(scanGuide);
+        
+        const scanMessage = document.createElement('div');
+        scanMessage.className = 'scan-message';
+        scanMessage.textContent = 'バーコードをガイド内に合わせてください';
+        viewport.appendChild(scanMessage);
+        
         Quagga.init({
           inputStream: {
             name: "Live",
             type: "LiveStream",
-            target: document.querySelector("#camera-view"),
-            constraints: {
-              width: 1080,
-              height: 1080,
-              facingMode: "environment"
-            }
+            target: viewport,
+            constraints: { 
+              width: 640,
+              height: 640,
+              facingMode: "environment" 
+            },
+            area: { top: "35%", right: "15%", left: "15%", bottom: "35%" }
           },
+          locator: { 
+            patchSize: "large",
+            halfSample: false
+          },
+          numOfWorkers: navigator.hardwareConcurrency || 4,
+          frequency: 3,
           decoder: {
-            readers: ["ean_reader"]
-          }
+            readers: [
+              'code_128_reader',
+              'code_39_reader',
+              'ean_reader',
+              'ean_8_reader',
+              'code_93_reader'
+            ],
+            debug: { 
+              drawBoundingBox: true, 
+              showFrequency: true, 
+              drawScanline: true, 
+              showPattern: true 
+            },
+            multiple: false,
+            tryHarder: true
+          },
+          locate: true
         }, function(err) {
           if (err) {
-            console.error(err);
-            showStatusMessage('カメラの起動に失敗しました: ' + err, 'error');
+            console.error("Quagga.init Error:", err);
+            showStatusMessage(`スキャナーの初期化に失敗: ${err.name} - ${err.message}. カメラへのアクセスを許可してください。`, 'error');
+            cameraView.classList.add('hidden');
             startButton.disabled = false;
             stopButton.disabled = true;
             return;
           }
-          quaggaInitialized = true;
+          console.log("スキャナーの初期化完了。スキャンを開始します。");
+          showStatusMessage("バーコードをカメラに向けてください。", "");
           Quagga.start();
-        });
-        
-        // バーコード検出時のイベントリスナー
-        Quagga.onDetected(function(result) {
-          const code = result.codeResult.code;
           
-          // 同じコードが連続で検出された場合のみ処理
-          if (code === lastDetectedCode) return;
-          lastDetectedCode = code;
+          Quagga.onProcessed(function(result) {
+            var drawingCtx = Quagga.canvas.ctx.overlay,
+              drawingCanvas = Quagga.canvas.dom.overlay;
+            if (result) {
+              if (result.boxes) {
+                drawingCtx.clearRect(0, 0, parseInt(drawingCanvas.getAttribute("width")), parseInt(drawingCanvas.getAttribute("height")));
+                result.boxes.filter(function (box) { return box !== result.box; }).forEach(function (box) {
+                  Quagga.ImageDebug.drawPath(box, {x: 0, y: 1}, drawingCtx, {color: "green", lineWidth: 2});
+                });
+              }
+              if (result.box) { Quagga.ImageDebug.drawPath(result.box, {x: 0, y: 1}, drawingCtx, {color: "#00F", lineWidth: 2}); }
+            }
+          });
           
-          // 確認ダイアログを表示
-          if (confirm('バーコード: ' + code + '\n\nこのコードで書籍情報を検索しますか？')) {
+          // 重複防止のためのタイムスタンプと前回のコード
+          let lastDetectedTime = 0;
+          let lastDetectedCode = null;
+          const COOLDOWN_PERIOD = 3000; // 同じコードを再検出するまでの待機時間（ミリ秒）
+          
+          Quagga.onDetected(function(result) {
+            const code = result.codeResult.code;
+            const currentTime = new Date().getTime();
+            console.log("バーコード検出:", code, "信頼度:", result.codeResult.confidence);
+            
+            // 信頼度が低い場合はスキップ
+            if (result.codeResult.confidence < 0.5) {
+              console.log("信頼度が低いため無視します:", result.codeResult.confidence);
+              return;
+            }
+            
+            // 前回と同じコードで、クールダウン期間内の場合はスキップ
+            if (code === lastDetectedCode && (currentTime - lastDetectedTime) < COOLDOWN_PERIOD) {
+              console.log(`同じコードが短時間で検出されました。無視します。経過時間: ${currentTime - lastDetectedTime}ms`);
+              return;
+            }
+            
+            // 新しいコードとして処理
+            lastDetectedCode = code;
+            lastDetectedTime = currentTime;
+            
+            // ビープ音を再生
+            playBeepSound();
+            
+            // スキャン成功したらスキャナーを停止し、ビューポートを隠す
             stopQuagga();
             cameraView.classList.add('hidden');
             startButton.disabled = false;
             stopButton.disabled = true;
+            
             isbnInput.value = code;
+            showStatusMessage(`ISBN「${code}」を読み取りました。`, "");
             fetchBookInfo(code);
-          } else {
-            // キャンセルされた場合は検出をリセット
-            lastDetectedCode = null;
-          }
+          });
         });
+        
+        quaggaInitialized = true;
       }
       
-      // Quaggaの停止
+      // スキャナーを停止する関数
       function stopQuagga() {
-        if (quaggaInitialized) {
-          Quagga.stop();
-          quaggaInitialized = false;
+        if (typeof Quagga !== 'undefined') {
+          // 初期化されているかどうかに関わらず、すべてのイベントリスナーを解除
+          try {
+            Quagga.offDetected();
+            Quagga.offProcessed();
+            
+            if (Quagga.initialized) {
+              Quagga.stop();
+              console.log("Quagga スキャナー停止");
+              // 初期化状態をリセット
+              Quagga.initialized = false;
+            }
+          } catch (e) {
+            console.error("Quaggaリスナー解除中にエラー:", e);
+          }
+          
+          // カメラストリームを明示的に停止
+          const viewport = document.getElementById('camera-view');
+          if (viewport) {
+            const canvas = viewport.querySelector('canvas');
+            if (canvas) viewport.removeChild(canvas);
+            
+            const video = viewport.querySelector('video');
+            if (video) {
+              // ビデオ要素のストリームを取得して停止
+              try {
+                const stream = video.srcObject;
+                if (stream) {
+                  const tracks = stream.getTracks();
+                  tracks.forEach(track => {
+                    track.stop();
+                    console.log("カメラトラック停止:", track.kind);
+                  });
+                  video.srcObject = null;
+                }
+              } catch (e) {
+                console.error("カメラストリーム停止中にエラー:", e);
+              }
+              
+              viewport.removeChild(video);
+            }
+            
+            // スキャンガイドとメッセージを削除
+            const existingGuide = viewport.querySelector('.scan-guide');
+            if (existingGuide) viewport.removeChild(existingGuide);
+            const existingMessage = viewport.querySelector('.scan-message');
+            if (existingMessage) viewport.removeChild(existingMessage);
+          }
+        } else {
+          console.log("Quagga is not defined.");
+        }
+        console.log("スキャナー停止処理完了");
+        quaggaInitialized = false;
+      }
+      
+      // ビープ音を再生する関数
+      function playBeepSound() {
+        try {
+          // 音量設定
+          beepSound.volume = 0.5;
+          // 再生位置を先頭に戻す（連続で鳴らせるように）
+          beepSound.currentTime = 0;
+          // 音を再生
+          beepSound.play().catch(e => console.error("ビープ音の再生に失敗:", e));
+        } catch (e) {
+          console.error("ビープ音の再生中にエラーが発生:", e);
         }
       }
       
