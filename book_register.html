@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>書籍登録システム</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js" integrity="sha512-bCsBoYoW6zE0aja5xcIyoCDPfT27+cGr7AOCqelttLVRGay6EKGQbR6wm6SUcUGOMGXJpj+jrIpMS6i80+kZPw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      height: 100%;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    #camera-view {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ccc;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .button-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    .book-info {
+      margin-top: 20px;
+      padding: 15px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      background-color: #f9f9f9;
+    }
+    .book-info h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .book-info p {
+      margin: 5px 0;
+    }
+    .book-info img {
+      max-width: 100px;
+      float: right;
+      margin-left: 15px;
+      border: 1px solid #ddd;
+    }
+    .hidden {
+      display: none;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    .status-message {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>書籍登録システム</h1>
+    
+    <div class="button-container">
+      <button id="start-button">カメラを起動</button>
+      <button id="stop-button" disabled>カメラを停止</button>
+    </div>
+    
+    <div id="camera-view" class="hidden"></div>
+    
+    <div id="manual-input" class="form-group">
+      <label for="isbn-input">ISBN（バーコード）を入力：</label>
+      <input type="text" id="isbn-input" placeholder="例：9784815601607">
+      <button id="search-button">検索</button>
+    </div>
+    
+    <div id="book-info" class="book-info hidden">
+      <div id="book-thumbnail"></div>
+      <h2>書籍情報</h2>
+      <div id="book-details">
+        <div class="form-group">
+          <label for="book-id">書籍ID（ISBN）：</label>
+          <input type="text" id="book-id" readonly>
+        </div>
+        <div class="form-group">
+          <label for="book-title">書籍名：</label>
+          <input type="text" id="book-title">
+        </div>
+        <div class="form-group">
+          <label for="book-author">著者名：</label>
+          <input type="text" id="book-author">
+        </div>
+        <div class="form-group">
+          <label for="book-publisher">出版社：</label>
+          <input type="text" id="book-publisher">
+        </div>
+        <div class="form-group">
+          <label for="book-note">備考：</label>
+          <input type="text" id="book-note">
+        </div>
+      </div>
+      <button id="register-button">書籍を登録</button>
+    </div>
+    
+    <div id="status-message" class="status-message hidden"></div>
+  </div>
+
+  <script>
+    // グローバル変数
+    let quaggaInitialized = false;
+    let lastDetectedCode = null;
+    
+    // DOMが読み込まれたら実行
+    document.addEventListener('DOMContentLoaded', function() {
+      // 要素の取得
+      const startButton = document.getElementById('start-button');
+      const stopButton = document.getElementById('stop-button');
+      const cameraView = document.getElementById('camera-view');
+      const isbnInput = document.getElementById('isbn-input');
+      const searchButton = document.getElementById('search-button');
+      const bookInfo = document.getElementById('book-info');
+      const bookId = document.getElementById('book-id');
+      const bookTitle = document.getElementById('book-title');
+      const bookAuthor = document.getElementById('book-author');
+      const bookPublisher = document.getElementById('book-publisher');
+      const bookNote = document.getElementById('book-note');
+      const bookThumbnail = document.getElementById('book-thumbnail');
+      const registerButton = document.getElementById('register-button');
+      const statusMessage = document.getElementById('status-message');
+      
+      // カメラ起動ボタンのイベントリスナー
+      startButton.addEventListener('click', function() {
+        cameraView.classList.remove('hidden');
+        initQuagga();
+        startButton.disabled = true;
+        stopButton.disabled = false;
+      });
+      
+      // カメラ停止ボタンのイベントリスナー
+      stopButton.addEventListener('click', function() {
+        stopQuagga();
+        cameraView.classList.add('hidden');
+        startButton.disabled = false;
+        stopButton.disabled = true;
+      });
+      
+      // 検索ボタンのイベントリスナー
+      searchButton.addEventListener('click', function() {
+        const isbn = isbnInput.value.trim();
+        if (isbn) {
+          fetchBookInfo(isbn);
+        } else {
+          showStatusMessage('ISBNを入力してください', 'error');
+        }
+      });
+      
+      // 登録ボタンのイベントリスナー
+      registerButton.addEventListener('click', function() {
+        registerBook();
+      });
+      
+      // Quaggaの初期化
+      function initQuagga() {
+        if (quaggaInitialized) return;
+        
+        Quagga.init({
+          inputStream: {
+            name: "Live",
+            type: "LiveStream",
+            target: document.querySelector("#camera-view"),
+            constraints: {
+              width: 1080,
+              height: 1080,
+              facingMode: "environment"
+            }
+          },
+          decoder: {
+            readers: ["ean_reader"]
+          }
+        }, function(err) {
+          if (err) {
+            console.error(err);
+            showStatusMessage('カメラの起動に失敗しました: ' + err, 'error');
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            return;
+          }
+          quaggaInitialized = true;
+          Quagga.start();
+        });
+        
+        // バーコード検出時のイベントリスナー
+        Quagga.onDetected(function(result) {
+          const code = result.codeResult.code;
+          
+          // 同じコードが連続で検出された場合のみ処理
+          if (code === lastDetectedCode) return;
+          lastDetectedCode = code;
+          
+          // 確認ダイアログを表示
+          if (confirm('バーコード: ' + code + '\n\nこのコードで書籍情報を検索しますか？')) {
+            stopQuagga();
+            cameraView.classList.add('hidden');
+            startButton.disabled = false;
+            stopButton.disabled = true;
+            isbnInput.value = code;
+            fetchBookInfo(code);
+          } else {
+            // キャンセルされた場合は検出をリセット
+            lastDetectedCode = null;
+          }
+        });
+      }
+      
+      // Quaggaの停止
+      function stopQuagga() {
+        if (quaggaInitialized) {
+          Quagga.stop();
+          quaggaInitialized = false;
+        }
+      }
+      
+      // 書籍情報の取得
+      function fetchBookInfo(isbn) {
+        showStatusMessage('書籍情報を検索中...', '');
+        
+        // Google Books APIを使用して書籍情報を取得
+        google.script.run
+          .withSuccessHandler(function(bookInfo) {
+            if (bookInfo && !bookInfo.error) {
+              displayBookInfo(bookInfo);
+              showStatusMessage('書籍情報を取得しました', 'success');
+            } else {
+              showStatusMessage('書籍情報が見つかりませんでした: ' + (bookInfo ? bookInfo.error : '不明なエラー'), 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            showStatusMessage('エラーが発生しました: ' + error.message, 'error');
+          })
+          .fetchBookInfo(isbn);
+      }
+      
+      // 書籍情報の表示
+      function displayBookInfo(bookInfo) {
+        bookId.value = bookInfo.isbn || '';
+        bookTitle.value = bookInfo.title || '';
+        bookAuthor.value = bookInfo.authors || '';
+        bookPublisher.value = bookInfo.publisher || '';
+        
+        // サムネイル画像の表示
+        if (bookInfo.thumbnail) {
+          bookThumbnail.innerHTML = `<img src="${bookInfo.thumbnail}" alt="${bookInfo.title}">`;
+        } else {
+          bookThumbnail.innerHTML = '';
+        }
+        
+        // 書籍情報セクションを表示
+        document.getElementById('book-info').classList.remove('hidden');
+      }
+      
+      // 書籍の登録
+      function registerBook() {
+        const bookData = {
+          isbn: bookId.value,
+          title: bookTitle.value,
+          author: bookAuthor.value,
+          publisher: bookPublisher.value,
+          note: bookNote.value
+        };
+        
+        // 必須項目のチェック
+        if (!bookData.isbn || !bookData.title) {
+          showStatusMessage('書籍IDと書籍名は必須です', 'error');
+          return;
+        }
+        
+        showStatusMessage('書籍を登録中...', '');
+        
+        // サーバーサイドの関数を呼び出して書籍を登録
+        google.script.run
+          .withSuccessHandler(function(result) {
+            if (result.success) {
+              showStatusMessage(result.message, 'success');
+              // フォームをリセット
+              resetForm();
+            } else {
+              showStatusMessage('登録に失敗しました: ' + result.message, 'error');
+            }
+          })
+          .withFailureHandler(function(error) {
+            showStatusMessage('エラーが発生しました: ' + error.message, 'error');
+          })
+          .registerBook(bookData);
+      }
+      
+      // フォームのリセット
+      function resetForm() {
+        isbnInput.value = '';
+        bookId.value = '';
+        bookTitle.value = '';
+        bookAuthor.value = '';
+        bookPublisher.value = '';
+        bookNote.value = '';
+        bookThumbnail.innerHTML = '';
+        bookInfo.classList.add('hidden');
+        lastDetectedCode = null;
+      }
+      
+      // ステータスメッセージの表示
+      function showStatusMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.className = 'status-message';
+        if (type) {
+          statusMessage.classList.add(type);
+        }
+        statusMessage.classList.remove('hidden');
+        
+        // 成功メッセージは3秒後に消える
+        if (type === 'success') {
+          setTimeout(function() {
+            statusMessage.classList.add('hidden');
+          }, 3000);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

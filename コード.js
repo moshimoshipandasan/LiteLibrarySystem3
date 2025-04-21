@@ -22,6 +22,10 @@ function doGet(e) {
         page = 'user_returns';
         title = '利用者別返却システム';
         break;
+      case 'register':
+        page = 'book_register';
+        title = '書籍登録システム';
+        break;
       default:
         // デフォルトは貸出ページのまま
         break;
@@ -1000,6 +1004,95 @@ function getUserRentals(userId) {
 // processReturnForm と getLendingInfo のテスト関数も同様に bookId ベースで作成可能
 // sendOverdueReminders のテストは、実際にメールが飛ぶため注意が必要
 
+
+/**
+ * Google Books APIを使用して書籍情報を取得する関数
+ * @param {string} isbn - 書籍のISBNコード
+ * @return {object} 書籍情報オブジェクト
+ */
+function fetchBookInfo(isbn) {
+  if (!isbn) {
+    return { error: "ISBNが指定されていません。" };
+  }
+  
+  try {
+    // Google Books APIのURLを構築
+    const url = `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&country=JP`;
+    
+    // APIリクエストを送信
+    const response = UrlFetchApp.fetch(url);
+    const data = JSON.parse(response.getContentText());
+    
+    // 検索結果がない場合
+    if (!data.items || data.items.length === 0) {
+      return { error: "書籍情報が見つかりませんでした。" };
+    }
+    
+    // 最初の検索結果から書籍情報を抽出
+    const volumeInfo = data.items[0].volumeInfo;
+    
+    // 書籍情報オブジェクトを作成
+    const bookInfo = {
+      isbn: isbn,
+      title: volumeInfo.title || "",
+      authors: volumeInfo.authors ? volumeInfo.authors.join(", ") : "",
+      publisher: volumeInfo.publisher || "",
+      thumbnail: volumeInfo.imageLinks ? volumeInfo.imageLinks.smallThumbnail : null
+    };
+    
+    return bookInfo;
+  } catch (error) {
+    console.error(`書籍情報の取得中にエラーが発生しました: ${error}`);
+    return { error: `APIリクエスト中にエラーが発生しました: ${error.message}` };
+  }
+}
+
+/**
+ * 書籍情報をスプレッドシートの書籍DBに登録する関数
+ * @param {object} bookData - 書籍データ {isbn, title, author, publisher, note}
+ * @return {object} 処理結果 {success: boolean, message: string}
+ */
+function registerBook(bookData) {
+  if (!bookData || !bookData.isbn || !bookData.title) {
+    return { success: false, message: "書籍IDと書籍名は必須です。" };
+  }
+  
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const bookSheet = ss.getSheetByName("書籍DB");
+    
+    if (!bookSheet) {
+      return { success: false, message: "書籍DBシートが見つかりません。" };
+    }
+    
+    // 既存の書籍IDをチェック（重複登録を防止）
+    const data = bookSheet.getDataRange().getValues();
+    const bookIdColIndex = 0; // A列
+    
+    // ヘッダー行を除いて検索
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][bookIdColIndex] && data[i][bookIdColIndex].toString().trim() === bookData.isbn.trim()) {
+        return { success: false, message: `書籍ID ${bookData.isbn} は既に登録されています。` };
+      }
+    }
+    
+    // 新しい行を追加
+    const newRow = [
+      bookData.isbn,
+      bookData.title,
+      bookData.author,
+      bookData.publisher,
+      bookData.note
+    ];
+    
+    bookSheet.appendRow(newRow);
+    
+    return { success: true, message: `書籍「${bookData.title}」を登録しました。` };
+  } catch (error) {
+    console.error(`書籍登録中にエラーが発生しました: ${error}`);
+    return { success: false, message: `書籍登録中にエラーが発生しました: ${error.message}` };
+  }
+}
 
 /**
  * スプレッドシートが開かれたときにカスタムメニューを追加する関数
