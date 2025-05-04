@@ -24,7 +24,7 @@
 
 ## 参照情報
 
-- **スプレッドシートテンプレート**: [https://docs.google.com/spreadsheets/d/1rZ-CD9SesyxnI1CKc5bGC0qA8GPu4-CK1_3nth0R23g/copy](https://docs.google.com/spreadsheets/d/1rZ-CD9SesyxnI1CKc5bGC0qA8GPu4-CK1_3nth0R23g/copy)
+- **スプレッドシートテンプレート**: [https://docs.google.com/spreadsheets/d/1gPA3DUV4X4_OORNOViQ56urc1mWg3OK-qNuqY2Gu5vw/copy](https://docs.google.com/spreadsheets/d/1gPA3DUV4X4_OORNOViQ56urc1mWg3OK-qNuqY2Gu5vw/copy)
 - **参考システム**: [https://sites.google.com/view/ueno999/top](https://sites.google.com/view/ueno999/top)
 
 ## サポート
